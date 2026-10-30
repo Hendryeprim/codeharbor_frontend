@@ -426,3 +426,4 @@ export const mockUser = {
   company: 'Apex Digital Labs',
   phone: '+1 (555) 234-5678',
 };
+
