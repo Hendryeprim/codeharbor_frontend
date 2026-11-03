@@ -115,11 +115,6 @@ export const Footer = () => {
                   Privacy Policy
                 </Link>
               </li>
-              <li>
-                <Link to="/admin/login" className="hover:text-[#00FFC6] transition text-[11px] text-slate-400">
-                  Staff Console Login
-                </Link>
-              </li>
             </ul>
 
             <div className="pt-2">
