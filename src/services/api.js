@@ -1,4 +1,16 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+export const getApiBaseUrl = () => {
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '');
+  }
+  // When running on live domain coderharbor.com, automatically route to api.coderharbor.com
+  if (typeof window !== 'undefined' && window.location.hostname && !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1')) {
+    const protocol = window.location.protocol; // preserves http: or https:
+    return `${protocol}//api.coderharbor.com/api`;
+  }
+  return '/api';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 export const getAuthToken = () => localStorage.getItem('coderharbor_token');
 export const setAuthToken = (token) => {
