@@ -27,7 +27,7 @@ export const Login = () => {
       } else if (data.user?.role === 'ADMIN') {
         navigate('/admin/dashboard', { replace: true });
       } else {
-        navigate('/customer/dashboard', { replace: true });
+        navigate('/projects', { replace: true });
       }
     } catch (err) {
       setError(err.message || 'Login failed. Please check your credentials.');

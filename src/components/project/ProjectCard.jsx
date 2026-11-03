@@ -128,7 +128,7 @@ export const ProjectCard = ({ project }) => {
             to={`/projects/${project.slug}`}
             className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-[#0B0F1A] bg-gradient-to-r from-[#0EA5E9] via-[#22D3EE] to-[#00FFC6] hover:brightness-110 transition duration-200"
           >
-            <span>Inspect</span>
+            <span>View & Buy</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>

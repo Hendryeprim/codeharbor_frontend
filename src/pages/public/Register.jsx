@@ -42,7 +42,7 @@ export const Register = () => {
         company: formData.company,
         phone: formData.phone,
       });
-      navigate('/customer/dashboard');
+      navigate('/projects', { replace: true });
     } catch (err) {
       setError(err.message || 'Registration failed. Please check your information.');
     } finally {
