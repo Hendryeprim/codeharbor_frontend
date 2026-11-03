@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Mail, Lock, LogIn, AlertCircle, ShieldCheck, UserCheck, KeyRound, Sparkles } from 'lucide-react';
+import { Mail, Lock, LogIn, AlertCircle } from 'lucide-react';
 
 export const Login = () => {
   const [email, setEmail] = useState('');
@@ -34,12 +34,6 @@ export const Login = () => {
     } finally {
       setSubmitting(false);
     }
-  };
-
-  const autofill = (demoEmail, demoPassword) => {
-    setEmail(demoEmail);
-    setPassword(demoPassword);
-    setError('');
   };
 
   return (
@@ -112,31 +106,6 @@ export const Login = () => {
             <span>{submitting ? 'Authenticating...' : 'Sign In'}</span>
           </button>
         </form>
-
-        {/* Quick Demo Autofill Box */}
-        <div className="pt-4 border-t border-[#334155]/60 space-y-2">
-          <p className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider text-center">
-            Quick 1-Click Demo Access
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => autofill('alex@example.com', 'Customer@12345')}
-              className="px-3 py-2 rounded-xl bg-[#0F172A] border border-[#334155] hover:border-[#00FFC6] text-[11px] font-bold text-[#00FFC6] text-center transition flex items-center justify-center gap-1.5"
-            >
-              <UserCheck className="w-3.5 h-3.5" />
-              <span>Customer Demo</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => autofill('admin@coderharbor.com', 'Admin@12345')}
-              className="px-3 py-2 rounded-xl bg-[#0F172A] border border-[#334155] hover:border-amber-400 text-[11px] font-bold text-amber-400 text-center transition flex items-center justify-center gap-1.5"
-            >
-              <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
-              <span>Admin Demo</span>
-            </button>
-          </div>
-        </div>
 
         <div className="text-center text-xs text-slate-400">
           Don't have an account?{' '}
