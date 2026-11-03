@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { adminAPI, publicAPI } from '../../services/api';
 import {
   Package,
@@ -12,6 +12,11 @@ import {
   Sparkles,
   Zap,
   CheckCircle2,
+  Upload,
+  Image,
+  FileArchive,
+  Film,
+  Check,
 } from 'lucide-react';
 
 export const AdminProjects = () => {
@@ -25,6 +30,28 @@ export const AdminProjects = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [zipFile, setZipFile] = useState(null);
+  const imageInputRef = useRef(null);
+  const zipInputRef = useRef(null);
+
+  const handleThumbnailUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingImage(true);
+    try {
+      const fd = new FormData();
+      fd.append('image', file);
+      const res = await adminAPI.uploadImage(fd);
+      if (res.success && res.url) {
+        setFormData((prev) => ({ ...prev, thumbnail: res.url }));
+      }
+    } catch (err) {
+      alert('Failed to upload image: ' + err.message);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   // Form State
   const [formData, setFormData] = useState({
@@ -123,11 +150,26 @@ export const AdminProjects = () => {
     setSubmitting(true);
 
     try {
+      let savedProduct;
       if (editingId) {
-        await adminAPI.updateProduct(editingId, formData);
+        savedProduct = await adminAPI.updateProduct(editingId, formData);
       } else {
-        await adminAPI.createProduct(formData);
+        savedProduct = await adminAPI.createProduct(formData);
       }
+
+      // If a ZIP archive was attached, upload it
+      if (zipFile) {
+        const prodId = editingId || savedProduct?.product?.id;
+        if (prodId) {
+          const zipFd = new FormData();
+          zipFd.append('file', zipFile);
+          zipFd.append('productId', prodId);
+          zipFd.append('version', '1.0.0');
+          await adminAPI.uploadProjectFile(zipFd);
+        }
+      }
+
+      setZipFile(null);
       setModalOpen(false);
       fetchData();
     } catch (err) {
@@ -452,26 +494,124 @@ export const AdminProjects = () => {
                 />
               </div>
 
+              {/* Thumbnail and Demo URL section */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Thumbnail with Direct File Upload */}
                 <div>
-                  <label className="block font-semibold text-[#C0C7D1] mb-1">Thumbnail URL</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block font-semibold text-[#C0C7D1]">Thumbnail / Screenshot</label>
+                    <button
+                      type="button"
+                      onClick={() => imageInputRef.current?.click()}
+                      disabled={uploadingImage}
+                      className="text-[10px] text-[#00FFC6] hover:underline flex items-center gap-1 font-mono font-bold"
+                    >
+                      <Upload className="w-3 h-3" />
+                      <span>{uploadingImage ? 'Uploading...' : 'Upload File'}</span>
+                    </button>
+                  </div>
                   <input
-                    type="url"
-                    value={formData.thumbnail}
-                    onChange={(e) => setFormData({ ...formData, thumbnail: e.target.value })}
-                    placeholder="https://..."
-                    className="w-full px-3 py-2 rounded-xl border border-[#334155]/80 bg-[#0F172A] text-[#E2E8F0] text-xs focus:outline-none focus:border-[#0EA5E9]"
+                    ref={imageInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleThumbnailUpload}
+                    className="hidden"
                   />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={formData.thumbnail}
+                      onChange={(e) => setFormData({ ...formData, thumbnail: e.target.value })}
+                      placeholder="Paste image URL or click 'Upload File' above"
+                      className="w-full px-3 py-2 pr-12 rounded-xl border border-[#334155]/80 bg-[#0F172A] text-[#E2E8F0] text-xs focus:outline-none focus:border-[#0EA5E9]"
+                    />
+                    {formData.thumbnail && (
+                      <div className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg overflow-hidden border border-[#334155]">
+                        <img src={formData.thumbnail} alt="Preview" className="w-full h-full object-cover" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1.5 mt-1.5 text-[10px] text-slate-400">
+                    <span>Quick covers:</span>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, thumbnail: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=80' })}
+                      className="text-[#22D3EE] hover:underline"
+                    >Code</button>
+                    <span>•</span>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, thumbnail: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80' })}
+                      className="text-[#22D3EE] hover:underline"
+                    >SaaS</button>
+                    <span>•</span>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, thumbnail: 'https://images.unsplash.com/photo-1556742049-0a67c5574f73?auto=format&fit=crop&w=800&q=80' })}
+                      className="text-[#22D3EE] hover:underline"
+                    >E-Com</button>
+                    <span>•</span>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, thumbnail: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80' })}
+                      className="text-[#22D3EE] hover:underline"
+                    >Billing</button>
+                  </div>
                 </div>
+
+                {/* Live Demo URL / Video Demo (Optional) */}
                 <div>
-                  <label className="block font-semibold text-[#C0C7D1] mb-1">Live Interactive Demo URL</label>
+                  <label className="block font-semibold text-[#C0C7D1] mb-1">
+                    Live Demo / Video URL <span className="text-[10px] text-slate-400 font-normal">(Optional)</span>
+                  </label>
                   <input
                     type="url"
                     value={formData.demoUrl}
                     onChange={(e) => setFormData({ ...formData, demoUrl: e.target.value })}
-                    placeholder="https://demo..."
+                    placeholder="https://... (Optional: Live site, YouTube, Loom, or Drive video)"
                     className="w-full px-3 py-2 rounded-xl border border-[#334155]/80 bg-[#0F172A] text-[#E2E8F0] text-xs focus:outline-none focus:border-[#0EA5E9]"
                   />
+                  <p className="text-[10px] text-slate-400 mt-1">
+                    No live website? Leave empty or paste a 1-minute YouTube screen recording link.
+                  </p>
+                </div>
+              </div>
+
+              {/* Attach Source Code ZIP Archive */}
+              <div className="p-3.5 rounded-2xl bg-[#0B0F1A]/80 border border-[#334155]/70 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-xs font-bold text-white">
+                    <FileArchive className="w-4 h-4 text-[#00FFC6]" />
+                    <span>Project Source Code ZIP Archive (.zip)</span>
+                  </div>
+                  <span className="text-[10px] font-mono text-slate-400">Vault Secure Storage</span>
+                </div>
+                <input
+                  ref={zipInputRef}
+                  type="file"
+                  accept=".zip,.tar,.gz,.7z"
+                  onChange={(e) => setZipFile(e.target.files?.[0] || null)}
+                  className="hidden"
+                />
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => zipInputRef.current?.click()}
+                    className="px-3 py-1.5 rounded-lg bg-[#1E293B] border border-[#334155] text-xs font-semibold text-slate-200 hover:text-white hover:border-[#00FFC6] transition flex items-center gap-1.5"
+                  >
+                    <Upload className="w-3.5 h-3.5 text-[#00FFC6]" />
+                    <span>{zipFile ? 'Change ZIP File' : 'Choose .zip File from Computer'}</span>
+                  </button>
+                  {zipFile ? (
+                    <span className="text-xs text-[#00FFC6] font-mono flex items-center gap-1 truncate max-w-xs">
+                      <Check className="w-3.5 h-3.5 shrink-0" />
+                      {zipFile.name} ({(zipFile.size / (1024 * 1024)).toFixed(2)} MB)
+                    </span>
+                  ) : (
+                    <span className="text-[11px] text-slate-400">
+                      No ZIP attached yet. (You can also upload via "File Management" anytime).
+                    </span>
+                  )}
                 </div>
               </div>
 
