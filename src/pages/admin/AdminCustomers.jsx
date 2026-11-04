@@ -37,8 +37,8 @@ export const AdminCustomers = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#0EA5E9]/10 border border-[#0EA5E9]/30 text-[#22D3EE] text-[11px] font-semibold tracking-wider uppercase mb-2">
-            <Zap className="w-3.5 h-3.5 text-[#00FFC6]" />
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#A855F7]/10 border border-[#A855F7]/30 text-[#A855F7] text-[11px] font-semibold tracking-wider uppercase mb-2">
+            <Zap className="w-3.5 h-3.5 text-[#C084FC]" />
             Developer Identity & Access Control
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-[#E2E8F0] tracking-tight">
@@ -56,20 +56,20 @@ export const AdminCustomers = () => {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search name, email, company..."
-            className="w-full pl-9 pr-3 py-2 rounded-xl border border-[#334155]/80 bg-[#0F172A] text-[#E2E8F0] placeholder-slate-500 text-xs focus:outline-none focus:border-[#0EA5E9]"
+            className="w-full pl-9 pr-3 py-2 rounded-xl border border-[#322659]/80 bg-[#0E0A1C] text-[#E2E8F0] placeholder-slate-500 text-xs focus:outline-none focus:border-[#A855F7]"
           />
         </div>
       </div>
 
       {loading ? (
         <div className="py-24 flex justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-[#0EA5E9]" />
+          <Loader2 className="w-8 h-8 animate-spin text-[#A855F7]" />
         </div>
       ) : (
-        <div className="bg-gradient-to-br from-[#131B2E] to-[#0F172A] rounded-2xl border border-[#334155]/60 overflow-hidden shadow-xl">
+        <div className="bg-gradient-to-br from-[#140F28] to-[#0E0A1C] rounded-2xl border border-[#322659]/60 overflow-hidden shadow-xl">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-[#0B0F1A]/80 text-[#C0C7D1] uppercase tracking-wider font-semibold border-b border-[#334155]/60">
+              <thead className="bg-[#0A0713]/80 text-[#C0C7D1] uppercase tracking-wider font-semibold border-b border-[#322659]/60">
                 <tr>
                   <th className="px-6 py-4">Customer</th>
                   <th className="px-6 py-4">Company</th>
@@ -80,18 +80,18 @@ export const AdminCustomers = () => {
                   <th className="px-6 py-4 text-right">Access Control</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#334155]/40 text-[#E2E8F0]">
+              <tbody className="divide-y divide-[#322659]/40 text-[#E2E8F0]">
                 {customers.map((c) => (
-                  <tr key={c.id} className="hover:bg-[#1E293B]/40 transition">
+                  <tr key={c.id} className="hover:bg-[#1C1636]/40 transition">
                     <td className="px-6 py-4 font-bold text-[#E2E8F0]">
                       <div>
                         <p>{c.name}</p>
-                        <p className="text-[11px] text-[#22D3EE] font-normal font-mono">{c.email}</p>
+                        <p className="text-[11px] text-[#A855F7] font-normal font-mono">{c.email}</p>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-[#C0C7D1]">{c.company || '—'}</td>
                     <td className="px-6 py-4 text-[#C0C7D1] font-mono text-[11px]">{c.phone || '—'}</td>
-                    <td className="px-6 py-4 font-bold font-mono text-[#00FFC6]">{c._count?.downloads ?? 0}</td>
+                    <td className="px-6 py-4 font-bold font-mono text-[#C084FC]">{c._count?.downloads ?? 0}</td>
                     <td className="px-6 py-4 font-bold font-mono text-amber-400">{c._count?.supportTickets ?? 0}</td>
                     <td className="px-6 py-4">
                       <span

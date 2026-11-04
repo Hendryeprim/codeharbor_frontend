@@ -53,8 +53,8 @@ export const AdminTechnologies = () => {
   return (
     <div className="space-y-6">
       <div>
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#0EA5E9]/10 border border-[#0EA5E9]/30 text-[#22D3EE] text-[11px] font-semibold tracking-wider uppercase mb-2">
-          <Zap className="w-3.5 h-3.5 text-[#00FFC6]" />
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#A855F7]/10 border border-[#A855F7]/30 text-[#A855F7] text-[11px] font-semibold tracking-wider uppercase mb-2">
+          <Zap className="w-3.5 h-3.5 text-[#C084FC]" />
           Stack Tags & Ecosystem Registry
         </div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-[#E2E8F0] tracking-tight">
@@ -66,7 +66,7 @@ export const AdminTechnologies = () => {
       </div>
 
       {/* Add new inline form */}
-      <div className="bg-gradient-to-br from-[#131B2E] to-[#0F172A] p-5 rounded-2xl border border-[#334155]/60 shadow-xl">
+      <div className="bg-gradient-to-br from-[#140F28] to-[#0E0A1C] p-5 rounded-2xl border border-[#322659]/60 shadow-xl">
         <form onSubmit={handleCreate} className="flex flex-col sm:flex-row gap-3 max-w-md">
           <input
             type="text"
@@ -74,12 +74,12 @@ export const AdminTechnologies = () => {
             value={newTechName}
             onChange={(e) => setNewTechName(e.target.value)}
             placeholder="Add technology (e.g. Next.js 15, Prisma, PyTorch)..."
-            className="flex-1 px-3.5 py-2 rounded-xl border border-[#334155]/80 bg-[#0F172A] text-[#E2E8F0] placeholder-slate-500 text-xs focus:outline-none focus:border-[#0EA5E9]"
+            className="flex-1 px-3.5 py-2 rounded-xl border border-[#322659]/80 bg-[#0E0A1C] text-[#E2E8F0] placeholder-slate-500 text-xs focus:outline-none focus:border-[#A855F7]"
           />
           <button
             type="submit"
             disabled={submitting}
-            className="px-5 py-2 rounded-xl bg-gradient-to-r from-[#0EA5E9] to-[#0A84FF] hover:shadow-neon-glow text-white font-bold text-xs transition duration-200 flex items-center justify-center gap-1.5 shrink-0 shadow-lg disabled:opacity-50"
+            className="px-5 py-2 rounded-xl bg-gradient-to-r from-[#A855F7] to-[#0A84FF] hover:shadow-purple-glow text-white font-bold text-xs transition duration-200 flex items-center justify-center gap-1.5 shrink-0 shadow-lg disabled:opacity-50"
           >
             <Plus className="w-4 h-4" />
             <span>Add Technology</span>
@@ -90,18 +90,18 @@ export const AdminTechnologies = () => {
       {/* Tech Grid */}
       {loading ? (
         <div className="py-24 flex justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-[#0EA5E9]" />
+          <Loader2 className="w-8 h-8 animate-spin text-[#A855F7]" />
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
           {technologies.map((t) => (
             <div
               key={t.id}
-              className="bg-gradient-to-br from-[#131B2E] to-[#0F172A] p-4 rounded-xl border border-[#334155]/60 shadow-lg flex items-center justify-between gap-2 hover:border-[#0EA5E9]/50 transition"
+              className="bg-gradient-to-br from-[#140F28] to-[#0E0A1C] p-4 rounded-xl border border-[#322659]/60 shadow-lg flex items-center justify-between gap-2 hover:border-[#A855F7]/50 transition"
             >
               <div className="overflow-hidden">
                 <p className="font-bold text-xs text-[#E2E8F0] truncate">{t.name}</p>
-                <p className="text-[10px] text-[#22D3EE] font-mono">/{t.slug}</p>
+                <p className="text-[10px] text-[#A855F7] font-mono">/{t.slug}</p>
               </div>
               <button
                 onClick={() => handleDelete(t)}

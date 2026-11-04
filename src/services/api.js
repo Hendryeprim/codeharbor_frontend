@@ -8,6 +8,8 @@ export const getApiBaseUrl = () => {
     return `${protocol}//api.coderharbor.com/api`;
   }
   return '/api';
+
+  
 };
 
 const API_BASE_URL = getApiBaseUrl();
@@ -177,4 +179,10 @@ export const adminAPI = {
     apiRequest('/admin/upload/image', { method: 'POST', body: formData }),
   uploadProjectFile: (formData) =>
     apiRequest('/admin/upload/project-file', { method: 'POST', body: formData }),
+  rebuildPreview: (id) =>
+    apiRequest(`/admin/products/${id}/preview/rebuild`, { method: 'POST' }),
+  togglePreview: (id, enable) =>
+    apiRequest(`/admin/products/${id}/preview/toggle`, { method: 'PATCH', body: JSON.stringify({ enable }) }),
+  getPreviewLogs: (id) =>
+    apiRequest(`/admin/products/${id}/preview/logs`),
 };

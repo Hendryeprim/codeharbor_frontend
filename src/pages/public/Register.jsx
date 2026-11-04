@@ -52,11 +52,11 @@ export const Register = () => {
 
   return (
     <div className="min-h-[85vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 text-[#E2E8F0]">
-      <div className="max-w-md w-full space-y-6 bg-[#131B2E]/90 p-8 sm:p-10 rounded-3xl border border-[#334155]/80 shadow-harbor-lg backdrop-blur-xl">
+      <div className="max-w-md w-full space-y-6 bg-[#140F28]/90 p-8 sm:p-10 rounded-3xl border border-[#322659]/80 shadow-harbor-lg backdrop-blur-xl">
         <div className="text-center">
           <Link to="/" className="inline-block mb-3">
             <div className="relative inline-block">
-              <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-[#0EA5E9] to-[#00FFC6] opacity-30 blur-sm" />
+              <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-[#0EA5E9] to-[#C084FC] opacity-30 blur-sm" />
               <img src="/image.png" alt="CoderHarbor" className="relative h-12 w-auto mx-auto object-contain" />
             </div>
           </Link>
@@ -79,14 +79,14 @@ export const Register = () => {
           <div>
             <label className="block font-bold text-slate-300 mb-1">Full Name</label>
             <div className="relative">
-              <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#22D3EE]" />
+              <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#A855F7]" />
               <input
                 type="text"
                 required
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="Sarah Connor"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#334155] bg-[#0B0F1A] text-white focus:outline-none focus:border-[#22D3EE]"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#322659] bg-[#0A0713] text-white focus:outline-none focus:border-[#A855F7]"
               />
             </div>
           </div>
@@ -94,14 +94,14 @@ export const Register = () => {
           <div>
             <label className="block font-bold text-slate-300 mb-1">Email Address</label>
             <div className="relative">
-              <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#22D3EE]" />
+              <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#A855F7]" />
               <input
                 type="email"
                 required
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 placeholder="sarah@example.com"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#334155] bg-[#0B0F1A] text-white focus:outline-none focus:border-[#22D3EE]"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#322659] bg-[#0A0713] text-white focus:outline-none focus:border-[#A855F7]"
               />
             </div>
           </div>
@@ -110,14 +110,14 @@ export const Register = () => {
             <div>
               <label className="block font-bold text-slate-300 mb-1">Password</label>
               <div className="relative">
-                <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#22D3EE]" />
+                <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#A855F7]" />
                 <input
                   type="password"
                   required
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   placeholder="Min 6 chars"
-                  className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-[#334155] bg-[#0B0F1A] text-white focus:outline-none focus:border-[#22D3EE]"
+                  className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-[#322659] bg-[#0A0713] text-white focus:outline-none focus:border-[#A855F7]"
                 />
               </div>
             </div>
@@ -125,14 +125,14 @@ export const Register = () => {
             <div>
               <label className="block font-bold text-slate-300 mb-1">Confirm</label>
               <div className="relative">
-                <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#22D3EE]" />
+                <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#A855F7]" />
                 <input
                   type="password"
                   required
                   value={formData.confirmPassword}
                   onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                   placeholder="Repeat"
-                  className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-[#334155] bg-[#0B0F1A] text-white focus:outline-none focus:border-[#22D3EE]"
+                  className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-[#322659] bg-[#0A0713] text-white focus:outline-none focus:border-[#A855F7]"
                 />
               </div>
             </div>
@@ -142,13 +142,13 @@ export const Register = () => {
             <div>
               <label className="block font-bold text-slate-300 mb-1">Company (Optional)</label>
               <div className="relative">
-                <Building className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#22D3EE]" />
+                <Building className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#A855F7]" />
                 <input
                   type="text"
                   value={formData.company}
                   onChange={(e) => setFormData({ ...formData, company: e.target.value })}
                   placeholder="Tech Labs Ltd"
-                  className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-[#334155] bg-[#0B0F1A] text-white focus:outline-none focus:border-[#22D3EE]"
+                  className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-[#322659] bg-[#0A0713] text-white focus:outline-none focus:border-[#A855F7]"
                 />
               </div>
             </div>
@@ -156,13 +156,13 @@ export const Register = () => {
             <div>
               <label className="block font-bold text-slate-300 mb-1">Phone (Optional)</label>
               <div className="relative">
-                <Phone className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#22D3EE]" />
+                <Phone className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#A855F7]" />
                 <input
                   type="text"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   placeholder="+1 (555) 012"
-                  className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-[#334155] bg-[#0B0F1A] text-white focus:outline-none focus:border-[#22D3EE]"
+                  className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-[#322659] bg-[#0A0713] text-white focus:outline-none focus:border-[#A855F7]"
                 />
               </div>
             </div>
@@ -170,11 +170,11 @@ export const Register = () => {
 
           <div className="text-[10px] text-slate-400 pt-1">
             By registering, you agree to our{' '}
-            <Link to="/terms" className="text-[#00FFC6] hover:underline">
+            <Link to="/terms" className="text-[#C084FC] hover:underline">
               Terms
             </Link>{' '}
             and{' '}
-            <Link to="/privacy" className="text-[#00FFC6] hover:underline">
+            <Link to="/privacy" className="text-[#C084FC] hover:underline">
               Privacy Policy
             </Link>.
           </div>
@@ -182,7 +182,7 @@ export const Register = () => {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#0EA5E9] via-[#22D3EE] to-[#00FFC6] text-[#0B0F1A] font-extrabold text-xs uppercase tracking-wider shadow-neon-glow transition hover:brightness-110 flex items-center justify-center gap-2"
+            className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#9333EA] via-[#A855F7] to-[#7C3AED] text-white font-extrabold text-xs uppercase tracking-wider shadow-purple-glow transition hover:brightness-110 flex items-center justify-center gap-2 cursor-pointer"
           >
             <UserPlus className="w-4 h-4" />
             <span>{submitting ? 'Creating Account...' : 'Complete Registration'}</span>
@@ -191,7 +191,7 @@ export const Register = () => {
 
         <div className="text-center text-xs text-slate-400">
           Already have an account?{' '}
-          <Link to="/login" className="font-bold text-[#00FFC6] hover:underline">
+          <Link to="/login" className="font-bold text-[#C084FC] hover:underline">
             Sign in
           </Link>
         </div>

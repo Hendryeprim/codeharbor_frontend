@@ -33,11 +33,11 @@ export const AdminLogin = () => {
 
   return (
     <div className="min-h-screen bg-[#070A12] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 text-[#E2E8F0]">
-      <div className="max-w-md w-full space-y-6 bg-[#131B2E]/95 border border-[#334155] p-8 sm:p-10 rounded-3xl shadow-harbor-lg backdrop-blur-xl">
+      <div className="max-w-md w-full space-y-6 bg-[#140F28]/95 border border-[#322659] p-8 sm:p-10 rounded-3xl shadow-harbor-lg backdrop-blur-xl">
         <div className="text-center">
           <Link to="/" className="inline-block mb-3">
             <div className="relative inline-block">
-              <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-[#0EA5E9] to-[#00FFC6] opacity-30 blur-sm" />
+              <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-[#A855F7] to-[#C084FC] opacity-30 blur-sm" />
               <img src="/image.png" alt="CoderHarbor" className="relative h-12 w-auto mx-auto object-contain" />
             </div>
           </Link>
@@ -62,14 +62,14 @@ export const AdminLogin = () => {
           <div>
             <label className="block font-bold text-slate-300 mb-1">Administrator Email</label>
             <div className="relative">
-              <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#22D3EE]" />
+              <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#A855F7]" />
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@coderharbor.com"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#334155] bg-[#0B0F1A] text-white focus:outline-none focus:border-[#22D3EE]"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#322659] bg-[#0A0713] text-white focus:outline-none focus:border-[#A855F7]"
               />
             </div>
           </div>
@@ -77,14 +77,14 @@ export const AdminLogin = () => {
           <div>
             <label className="block font-bold text-slate-300 mb-1">Master Password</label>
             <div className="relative">
-              <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#22D3EE]" />
+              <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#A855F7]" />
               <input
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#334155] bg-[#0B0F1A] text-white focus:outline-none focus:border-[#22D3EE]"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#322659] bg-[#0A0713] text-white focus:outline-none focus:border-[#A855F7]"
               />
             </div>
           </div>
@@ -92,7 +92,7 @@ export const AdminLogin = () => {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#0EA5E9] to-[#00FFC6] text-[#0B0F1A] font-extrabold text-xs uppercase tracking-wider shadow-neon-glow hover:brightness-110 transition flex items-center justify-center gap-2"
+            className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#A855F7] to-[#C084FC] text-white font-extrabold text-xs uppercase tracking-wider shadow-purple-glow hover:brightness-110 transition flex items-center justify-center gap-2"
           >
             <LogIn className="w-4 h-4" />
             <span>{submitting ? 'Verifying Credentials...' : 'Sign In as Administrator'}</span>
@@ -100,7 +100,7 @@ export const AdminLogin = () => {
         </form>
 
         <div className="text-center pt-2">
-          <Link to="/" className="text-xs text-slate-400 hover:text-[#00FFC6] transition">
+          <Link to="/" className="text-xs text-slate-400 hover:text-[#C084FC] transition">
             ← Return to Public Marketplace
           </Link>
         </div>

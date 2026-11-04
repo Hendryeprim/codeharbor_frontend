@@ -74,8 +74,8 @@ export const AdminSupport = () => {
   return (
     <div className="space-y-6">
       <div>
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#0EA5E9]/10 border border-[#0EA5E9]/30 text-[#22D3EE] text-[11px] font-semibold tracking-wider uppercase mb-2">
-          <Zap className="w-3.5 h-3.5 text-[#00FFC6]" />
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#A855F7]/10 border border-[#A855F7]/30 text-[#A855F7] text-[11px] font-semibold tracking-wider uppercase mb-2">
+          <Zap className="w-3.5 h-3.5 text-[#C084FC]" />
           Technical Assistance & Customer Care
         </div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-[#E2E8F0] tracking-tight">
@@ -88,7 +88,7 @@ export const AdminSupport = () => {
 
       {loading ? (
         <div className="py-24 flex justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-[#0EA5E9]" />
+          <Loader2 className="w-8 h-8 animate-spin text-[#A855F7]" />
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
@@ -100,13 +100,13 @@ export const AdminSupport = () => {
                 onClick={() => loadTicket(t.id)}
                 className={`p-4 rounded-2xl border cursor-pointer transition ${
                   selectedTicket?.id === t.id
-                    ? 'border-[#0EA5E9] bg-gradient-to-r from-[#131B2E] to-[#1E293B] shadow-neon-glow/20'
-                    : 'border-[#334155]/60 bg-[#131B2E]/80 hover:border-[#334155]'
+                    ? 'border-[#A855F7] bg-gradient-to-r from-[#140F28] to-[#1C1636] shadow-purple-glow/20'
+                    : 'border-[#322659]/60 bg-[#140F28]/80 hover:border-[#322659]'
                 }`}
               >
                 <div className="flex items-center justify-between mb-1.5 text-xs">
-                  <span className="font-mono font-bold text-[#22D3EE]">{t.ticketNumber}</span>
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#0B0F1A] text-[#C0C7D1] border border-[#334155]">
+                  <span className="font-mono font-bold text-[#A855F7]">{t.ticketNumber}</span>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#0A0713] text-[#C0C7D1] border border-[#322659]">
                     {t.status}
                   </span>
                 </div>
@@ -120,17 +120,17 @@ export const AdminSupport = () => {
           </div>
 
           {/* Conversation (7 cols) */}
-          <div className="md:col-span-7 bg-gradient-to-br from-[#131B2E] to-[#0F172A] rounded-2xl border border-[#334155]/60 p-6 flex flex-col justify-between min-h-[480px] shadow-xl">
+          <div className="md:col-span-7 bg-gradient-to-br from-[#140F28] to-[#0E0A1C] rounded-2xl border border-[#322659]/60 p-6 flex flex-col justify-between min-h-[480px] shadow-xl">
             {threadLoading ? (
               <div className="flex-1 flex items-center justify-center">
-                <Loader2 className="w-6 h-6 animate-spin text-[#0EA5E9]" />
+                <Loader2 className="w-6 h-6 animate-spin text-[#A855F7]" />
               </div>
             ) : selectedTicket ? (
               <div className="flex-1 flex flex-col justify-between">
                 <div>
-                  <div className="flex items-center justify-between border-b border-[#334155]/60 pb-4 mb-4">
+                  <div className="flex items-center justify-between border-b border-[#322659]/60 pb-4 mb-4">
                     <div>
-                      <span className="font-mono text-xs font-bold text-[#22D3EE]">
+                      <span className="font-mono text-xs font-bold text-[#A855F7]">
                         {selectedTicket.ticketNumber}
                       </span>
                       <h3 className="text-sm sm:text-base font-bold text-[#E2E8F0]">
@@ -145,7 +145,7 @@ export const AdminSupport = () => {
                       <select
                         value={selectedTicket.status}
                         onChange={(e) => handleStatusChange(e.target.value)}
-                        className="px-2.5 py-1 rounded-lg border border-[#334155] text-xs font-semibold bg-[#0B0F1A] text-[#E2E8F0] focus:outline-none focus:border-[#0EA5E9]"
+                        className="px-2.5 py-1 rounded-lg border border-[#322659] text-xs font-semibold bg-[#0A0713] text-[#E2E8F0] focus:outline-none focus:border-[#A855F7]"
                       >
                         <option value="OPEN">OPEN</option>
                         <option value="IN_PROGRESS">IN_PROGRESS</option>
@@ -161,8 +161,8 @@ export const AdminSupport = () => {
                         key={msg.id}
                         className={`p-3.5 rounded-2xl text-xs leading-relaxed max-w-[85%] ${
                           msg.isAdmin
-                            ? 'ml-auto bg-gradient-to-r from-[#0EA5E9] to-[#0A84FF] text-white rounded-br-none shadow-md'
-                            : 'bg-[#1E293B] text-[#E2E8F0] rounded-bl-none border border-[#334155]'
+                            ? 'ml-auto bg-gradient-to-r from-[#A855F7] to-[#0A84FF] text-white rounded-br-none shadow-md'
+                            : 'bg-[#1C1636] text-[#E2E8F0] rounded-bl-none border border-[#322659]'
                         }`}
                       >
                         <div className="flex items-center justify-between gap-3 mb-1 text-[10px] opacity-80">
@@ -177,19 +177,19 @@ export const AdminSupport = () => {
                   </div>
                 </div>
 
-                <form onSubmit={handleSendReply} className="mt-4 pt-3 border-t border-[#334155]/60 flex gap-2">
+                <form onSubmit={handleSendReply} className="mt-4 pt-3 border-t border-[#322659]/60 flex gap-2">
                   <input
                     type="text"
                     required
                     value={reply}
                     onChange={(e) => setReply(e.target.value)}
                     placeholder="Type official admin response..."
-                    className="flex-1 px-3.5 py-2.5 rounded-xl border border-[#334155]/80 bg-[#0B0F1A] text-[#E2E8F0] text-xs focus:outline-none focus:border-[#0EA5E9]"
+                    className="flex-1 px-3.5 py-2.5 rounded-xl border border-[#322659]/80 bg-[#0A0713] text-[#E2E8F0] text-xs focus:outline-none focus:border-[#A855F7]"
                   />
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0EA5E9] to-[#0A84FF] hover:shadow-neon-glow text-white text-xs font-bold flex items-center gap-1.5 transition duration-200 shrink-0 shadow-lg disabled:opacity-50"
+                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#A855F7] to-[#0A84FF] hover:shadow-purple-glow text-white text-xs font-bold flex items-center gap-1.5 transition duration-200 shrink-0 shadow-lg disabled:opacity-50"
                   >
                     <Send className="w-3.5 h-3.5" />
                     <span>Reply</span>

@@ -10,7 +10,7 @@ export const PrivacyPolicy = () => {
         <p className="text-xs text-slate-400">Effective Date: October 2026</p>
       </div>
 
-      <div className="bg-[#131B2E]/90 rounded-3xl p-8 sm:p-10 border border-[#334155]/80 shadow-harbor-sm space-y-6 text-xs sm:text-sm text-[#C0C7D1] leading-relaxed">
+      <div className="bg-[#140F28]/90 rounded-3xl p-8 sm:p-10 border border-[#322659]/80 shadow-harbor-sm space-y-6 text-xs sm:text-sm text-[#C0C7D1] leading-relaxed">
         <div>
           <h2 className="text-sm font-bold text-white mb-2">1. Information We Collect</h2>
           <p>

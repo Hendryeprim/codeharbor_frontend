@@ -80,8 +80,8 @@ export const AdminFiles = () => {
   return (
     <div className="space-y-8">
       <div>
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#0EA5E9]/10 border border-[#0EA5E9]/30 text-[#22D3EE] text-[11px] font-semibold tracking-wider uppercase mb-2">
-          <Zap className="w-3.5 h-3.5 text-[#00FFC6]" />
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#A855F7]/10 border border-[#A855F7]/30 text-[#A855F7] text-[11px] font-semibold tracking-wider uppercase mb-2">
+          <Zap className="w-3.5 h-3.5 text-[#C084FC]" />
           Secure Vault & Asset Distribution
         </div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-[#E2E8F0] tracking-tight">
@@ -94,7 +94,7 @@ export const AdminFiles = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Upload Private ZIP File */}
-        <div className="bg-gradient-to-br from-[#131B2E] to-[#0F172A] rounded-2xl p-6 sm:p-8 border border-[#334155]/60 shadow-xl space-y-5">
+        <div className="bg-gradient-to-br from-[#140F28] to-[#0E0A1C] rounded-2xl p-6 sm:p-8 border border-[#322659]/60 shadow-xl space-y-5">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/30 flex items-center justify-center font-bold">
               <FolderArchive className="w-5 h-5" />
@@ -125,7 +125,7 @@ export const AdminFiles = () => {
               <select
                 value={selectedProductId}
                 onChange={(e) => setSelectedProductId(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-[#334155]/80 bg-[#0F172A] text-[#E2E8F0] focus:outline-none focus:border-[#0EA5E9]"
+                className="w-full px-3 py-2 rounded-xl border border-[#322659]/80 bg-[#0E0A1C] text-[#E2E8F0] focus:outline-none focus:border-[#A855F7]"
               >
                 {products.map((p) => (
                   <option key={p.id} value={p.id}>
@@ -143,7 +143,7 @@ export const AdminFiles = () => {
                 value={version}
                 onChange={(e) => setVersion(e.target.value)}
                 placeholder="1.0.0"
-                className="w-full px-3 py-2 rounded-xl border border-[#334155]/80 bg-[#0F172A] text-[#E2E8F0] font-mono focus:outline-none focus:border-[#0EA5E9]"
+                className="w-full px-3 py-2 rounded-xl border border-[#322659]/80 bg-[#0E0A1C] text-[#E2E8F0] font-mono focus:outline-none focus:border-[#A855F7]"
               />
             </div>
 
@@ -154,14 +154,14 @@ export const AdminFiles = () => {
                 required
                 accept=".zip,.tar,.gz,.7z"
                 onChange={(e) => setSelectedZipFile(e.target.files[0])}
-                className="w-full px-3 py-2 rounded-xl border border-[#334155]/80 bg-[#0F172A] text-[#C0C7D1] file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-gradient-to-r file:from-[#0EA5E9] file:to-[#0A84FF] file:text-white cursor-pointer"
+                className="w-full px-3 py-2 rounded-xl border border-[#322659]/80 bg-[#0E0A1C] text-[#C0C7D1] file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-gradient-to-r file:from-[#A855F7] file:to-[#0A84FF] file:text-white cursor-pointer"
               />
             </div>
 
             <button
               type="submit"
               disabled={uploadingZip || !selectedZipFile}
-              className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#0EA5E9] to-[#0A84FF] hover:shadow-neon-glow text-white font-bold transition duration-200 disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg"
+              className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#A855F7] to-[#0A84FF] hover:shadow-purple-glow text-white font-bold transition duration-200 disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg"
             >
               <Upload className="w-4 h-4" />
               <span>{uploadingZip ? 'Encrypting & Vaulting...' : 'Upload Project Archive'}</span>
@@ -170,9 +170,9 @@ export const AdminFiles = () => {
         </div>
 
         {/* Upload Public Image / Screenshot */}
-        <div className="bg-gradient-to-br from-[#131B2E] to-[#0F172A] rounded-2xl p-6 sm:p-8 border border-[#334155]/60 shadow-xl space-y-5">
+        <div className="bg-gradient-to-br from-[#140F28] to-[#0E0A1C] rounded-2xl p-6 sm:p-8 border border-[#322659]/60 shadow-xl space-y-5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#0EA5E9]/10 text-[#22D3EE] border border-[#0EA5E9]/30 flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-xl bg-[#A855F7]/10 text-[#A855F7] border border-[#A855F7]/30 flex items-center justify-center font-bold">
               <Image className="w-5 h-5" />
             </div>
             <div>
@@ -203,14 +203,14 @@ export const AdminFiles = () => {
                 required
                 accept="image/*"
                 onChange={(e) => setSelectedImageFile(e.target.files[0])}
-                className="w-full px-3 py-2 rounded-xl border border-[#334155]/80 bg-[#0F172A] text-[#C0C7D1] file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[#1E293B] file:text-[#22D3EE] cursor-pointer"
+                className="w-full px-3 py-2 rounded-xl border border-[#322659]/80 bg-[#0E0A1C] text-[#C0C7D1] file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[#1C1636] file:text-[#A855F7] cursor-pointer"
               />
             </div>
 
             <button
               type="submit"
               disabled={uploadingImg || !selectedImageFile}
-              className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#0EA5E9] to-[#0A84FF] hover:shadow-neon-glow text-white font-bold transition duration-200 disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg"
+              className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#A855F7] to-[#0A84FF] hover:shadow-purple-glow text-white font-bold transition duration-200 disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg"
             >
               <Upload className="w-4 h-4" />
               <span>{uploadingImg ? 'Uploading Screenshot...' : 'Upload Image'}</span>

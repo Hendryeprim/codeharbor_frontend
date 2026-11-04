@@ -35,7 +35,7 @@ export const CustomerOrders = () => {
       </div>
 
       {/* Explanatory Banner regarding payment postponement */}
-      <div className="p-6 rounded-3xl bg-[#131B2E] border border-amber-500/30 shadow-harbor-sm space-y-3">
+      <div className="p-6 rounded-3xl bg-[#140F28] border border-amber-500/30 shadow-harbor-sm space-y-3">
         <div className="flex items-center gap-2 text-amber-400 font-bold text-sm">
           <Clock className="w-5 h-5 text-amber-400" />
           <span>Payment Gateway Phase: Coming Soon</span>
@@ -46,7 +46,7 @@ export const CustomerOrders = () => {
       </div>
 
       {orders.length === 0 ? (
-        <div className="bg-[#131B2E] rounded-3xl p-12 text-center border border-[#334155] max-w-md mx-auto">
+        <div className="bg-[#140F28] rounded-3xl p-12 text-center border border-[#322659] max-w-md mx-auto">
           <ShoppingBag className="w-12 h-12 text-slate-500 mx-auto mb-3" />
           <h3 className="text-sm font-bold text-white mb-1">No Orders Found</h3>
           <p className="text-xs text-slate-400 mb-6">
@@ -54,16 +54,16 @@ export const CustomerOrders = () => {
           </p>
           <Link
             to="/projects"
-            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0EA5E9] to-[#00FFC6] text-[#0B0F1A] text-xs font-bold uppercase tracking-wider"
+            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0EA5E9] to-[#C084FC] text-white text-xs font-bold uppercase tracking-wider"
           >
             Explore Projects
           </Link>
         </div>
       ) : (
-        <div className="bg-[#131B2E] rounded-3xl border border-[#334155] overflow-hidden shadow-harbor-sm">
+        <div className="bg-[#140F28] rounded-3xl border border-[#322659] overflow-hidden shadow-harbor-sm">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-[#0F172A] text-slate-400 uppercase tracking-wider font-semibold border-b border-[#334155]">
+              <thead className="bg-[#0E0A1C] text-slate-400 uppercase tracking-wider font-semibold border-b border-[#322659]">
                 <tr>
                   <th className="px-6 py-4">Order #</th>
                   <th className="px-6 py-4">Date</th>
@@ -72,7 +72,7 @@ export const CustomerOrders = () => {
                   <th className="px-6 py-4">Total</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#334155]/60 text-slate-300">
+              <tbody className="divide-y divide-[#322659]/60 text-slate-300">
                 {orders.map((o) => (
                   <tr key={o.id}>
                     <td className="px-6 py-4 font-mono font-bold text-white">{o.orderNumber}</td>
@@ -83,7 +83,7 @@ export const CustomerOrders = () => {
                         {o.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 font-bold text-[#00FFC6]">${Number(o.totalAmount).toFixed(2)}</td>
+                    <td className="px-6 py-4 font-bold text-[#C084FC]">₹{Number(o.totalAmount).toFixed(2)}</td>
                   </tr>
                 ))}
               </tbody>

@@ -24,8 +24,8 @@ export const AdminOrders = () => {
   return (
     <div className="space-y-6">
       <div>
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#0EA5E9]/10 border border-[#0EA5E9]/30 text-[#22D3EE] text-[11px] font-semibold tracking-wider uppercase mb-2">
-          <Zap className="w-3.5 h-3.5 text-[#00FFC6]" />
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#A855F7]/10 border border-[#A855F7]/30 text-[#A855F7] text-[11px] font-semibold tracking-wider uppercase mb-2">
+          <Zap className="w-3.5 h-3.5 text-[#C084FC]" />
           Commerce & Licensing Records
         </div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-[#E2E8F0] tracking-tight">
@@ -37,7 +37,7 @@ export const AdminOrders = () => {
       </div>
 
       {/* Explanatory Policy Callout */}
-      <div className="p-6 rounded-2xl bg-gradient-to-br from-[#131B2E] to-[#0F172A] border border-amber-500/30 shadow-xl space-y-2">
+      <div className="p-6 rounded-2xl bg-gradient-to-br from-[#140F28] to-[#0E0A1C] border border-amber-500/30 shadow-xl space-y-2">
         <div className="flex items-center gap-2 text-amber-300 font-bold text-sm">
           <Clock className="w-5 h-5 text-amber-400" />
           <span>Payment Processing: Scheduled for Future Phase (Coming Soon)</span>
@@ -48,7 +48,7 @@ export const AdminOrders = () => {
       </div>
 
       {orders.length === 0 ? (
-        <div className="bg-gradient-to-br from-[#131B2E] to-[#0F172A] rounded-2xl p-12 text-center border border-[#334155]/60 max-w-md mx-auto shadow-xl">
+        <div className="bg-gradient-to-br from-[#140F28] to-[#0E0A1C] rounded-2xl p-12 text-center border border-[#322659]/60 max-w-md mx-auto shadow-xl">
           <ShoppingBag className="w-12 h-12 text-slate-500 mx-auto mb-3" />
           <h3 className="text-base font-bold text-[#E2E8F0] mb-1">No Orders Generated</h3>
           <p className="text-xs text-[#C0C7D1]/60">
@@ -56,9 +56,9 @@ export const AdminOrders = () => {
           </p>
         </div>
       ) : (
-        <div className="bg-gradient-to-br from-[#131B2E] to-[#0F172A] rounded-2xl border border-[#334155]/60 overflow-hidden shadow-xl">
+        <div className="bg-gradient-to-br from-[#140F28] to-[#0E0A1C] rounded-2xl border border-[#322659]/60 overflow-hidden shadow-xl">
           <table className="w-full text-left text-xs">
-            <thead className="bg-[#0B0F1A]/80 text-[#C0C7D1] uppercase tracking-wider font-semibold border-b border-[#334155]/60">
+            <thead className="bg-[#0A0713]/80 text-[#C0C7D1] uppercase tracking-wider font-semibold border-b border-[#322659]/60">
               <tr>
                 <th className="px-6 py-4">Order #</th>
                 <th className="px-6 py-4">Customer</th>
@@ -67,13 +67,13 @@ export const AdminOrders = () => {
                 <th className="px-6 py-4">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#334155]/40 text-[#E2E8F0]">
+            <tbody className="divide-y divide-[#322659]/40 text-[#E2E8F0]">
               {orders.map((o) => (
-                <tr key={o.id} className="hover:bg-[#1E293B]/40 transition">
-                  <td className="px-6 py-4 font-mono font-bold text-[#22D3EE]">{o.orderNumber}</td>
+                <tr key={o.id} className="hover:bg-[#1C1636]/40 transition">
+                  <td className="px-6 py-4 font-mono font-bold text-[#A855F7]">{o.orderNumber}</td>
                   <td className="px-6 py-4 text-[#E2E8F0]">{o.user?.name}</td>
                   <td className="px-6 py-4 text-[#C0C7D1]">{o.items?.length || 1} item(s)</td>
-                  <td className="px-6 py-4 font-bold font-mono text-[#00FFC6]">${Number(o.totalAmount).toFixed(2)}</td>
+                  <td className="px-6 py-4 font-bold font-mono text-[#C084FC]">₹{Number(o.totalAmount).toFixed(2)}</td>
                   <td className="px-6 py-4">
                     <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30">
                       {o.status}

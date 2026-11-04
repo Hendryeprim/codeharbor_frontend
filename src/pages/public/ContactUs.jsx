@@ -39,7 +39,7 @@ export const ContactUs = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-[#E2E8F0]">
       <div className="text-center max-w-2xl mx-auto mb-14">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold uppercase tracking-wider bg-[#00FFC6]/10 text-[#00FFC6] border border-[#00FFC6]/30 mb-2">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold uppercase tracking-wider bg-[#C084FC]/10 text-[#C084FC] border border-[#C084FC]/30 mb-2">
           <Terminal className="w-3.5 h-3.5" />
           <span>Direct Engineering Inquiries</span>
         </div>
@@ -53,59 +53,65 @@ export const ContactUs = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 max-w-5xl mx-auto">
         {/* Contact Info Card */}
-        <div className="lg:col-span-5 bg-[#131B2E] rounded-3xl p-8 text-white space-y-8 shadow-harbor-md border border-[#334155]/80 flex flex-col justify-between">
+        <div className="lg:col-span-5 bg-[#140F28] rounded-3xl p-8 text-white space-y-8 shadow-harbor-md border border-[#322659]/80 flex flex-col justify-between">
           <div className="space-y-6">
             <div>
-              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#00FFC6]">
-                Harbor Headquarters
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#C084FC]">
+                Corporate Headquarters
               </span>
-              <h2 className="text-xl font-bold mt-1">Get in Touch</h2>
+              <h2 className="text-xl font-bold mt-1 text-white">TRIDIN SOFTWARE PRIVATE LIMITED</h2>
               <p className="text-xs text-slate-400 mt-2 leading-relaxed">
-                Our engineering team handles technical inquiries, license guidance, and software delivery consultation.
+                CoderHarbor engineering and technical delivery office. Get in touch for project licensing, custom enterprise deployments, and support inquiries.
               </p>
             </div>
 
             <div className="space-y-4 text-xs text-slate-300">
               <div className="flex items-start gap-3.5">
-                <Mail className="w-5 h-5 text-[#22D3EE] shrink-0 mt-0.5" />
+                <Mail className="w-5 h-5 text-[#A855F7] shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase">Direct Email</p>
-                  <p className="text-white font-mono">support@coderharbor.com</p>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase">Direct Support Email</p>
+                  <a href="mailto:support@coderharbor.com" className="text-white font-mono hover:text-[#C084FC] transition">
+                    support@coderharbor.com
+                  </a>
                 </div>
               </div>
 
               <div className="flex items-start gap-3.5">
-                <Phone className="w-5 h-5 text-[#22D3EE] shrink-0 mt-0.5" />
+                <Phone className="w-5 h-5 text-[#A855F7] shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase">Telephone</p>
-                  <p className="text-white font-mono">+1 (800) 555-0199</p>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase">Telephone / WhatsApp</p>
+                  <a href="tel:+919600045602" className="text-white font-mono hover:text-[#C084FC] transition">
+                    +91 96000 45602
+                  </a>
                 </div>
               </div>
 
               <div className="flex items-start gap-3.5">
-                <MapPin className="w-5 h-5 text-[#22D3EE] shrink-0 mt-0.5" />
+                <MapPin className="w-5 h-5 text-[#A855F7] shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase">Location</p>
-                  <p className="text-white font-medium">
-                    742 Harbor Way, Suite 400<br />
-                    San Francisco, CA 94107
+                  <p className="text-[10px] text-slate-400 font-bold uppercase">Registered Office Address</p>
+                  <p className="text-white font-medium leading-relaxed">
+                    <strong>TRIDIN SOFTWARE PRIVATE LIMITED</strong><br />
+                    6th Floor, Block B, TECCI PARK, M229, #173,<br />
+                    Cactus Corporate Coworking, Rajiv Gandhi Salai, OMR,<br />
+                    Chennai, Tamil Nadu 600119, India.
                   </p>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="pt-6 border-t border-[#334155]/60 text-xs text-slate-400">
-            <p>Support Hours: Monday – Friday</p>
-            <p className="text-[#00FFC6] font-mono">09:00 AM – 06:00 PM PST</p>
+          <div className="pt-6 border-t border-[#322659]/60 text-xs text-slate-400">
+            <p>Support Operations: Monday – Saturday</p>
+            <p className="text-[#C084FC] font-mono">09:30 AM – 06:30 PM IST</p>
           </div>
         </div>
 
         {/* Contact Form */}
-        <div className="lg:col-span-7 bg-[#131B2E]/90 rounded-3xl p-8 border border-[#334155]/80 shadow-harbor-sm backdrop-blur-xl">
+        <div className="lg:col-span-7 bg-[#140F28]/90 rounded-3xl p-8 border border-[#322659]/80 shadow-harbor-sm backdrop-blur-xl">
           {submitted ? (
             <div className="py-12 text-center space-y-4">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-[#00FFC6] flex items-center justify-center mx-auto border border-[#00FFC6]/30">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-[#C084FC] flex items-center justify-center mx-auto border border-[#C084FC]/30">
                 <CheckCircle2 className="w-6 h-6" />
               </div>
               <h3 className="text-lg font-bold text-white">Message Received!</h3>
@@ -114,7 +120,7 @@ export const ContactUs = () => {
               </p>
               <button
                 onClick={() => setSubmitted(false)}
-                className="mt-4 px-5 py-2 rounded-xl bg-gradient-to-r from-[#0EA5E9] to-[#00FFC6] text-[#0B0F1A] text-xs font-bold uppercase tracking-wider"
+                className="mt-4 px-5 py-2 rounded-xl bg-gradient-to-r from-[#0EA5E9] to-[#C084FC] text-white text-xs font-bold uppercase tracking-wider"
               >
                 Send Another Message
               </button>
@@ -136,7 +142,7 @@ export const ContactUs = () => {
                     required
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#334155] bg-[#0B0F1A] text-white focus:outline-none focus:border-[#22D3EE]"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#322659] bg-[#0A0713] text-white focus:outline-none focus:border-[#A855F7]"
                     placeholder="e.g. Alex Morgan"
                   />
                 </div>
@@ -147,7 +153,7 @@ export const ContactUs = () => {
                     required
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#334155] bg-[#0B0F1A] text-white focus:outline-none focus:border-[#22D3EE]"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#322659] bg-[#0A0713] text-white focus:outline-none focus:border-[#A855F7]"
                     placeholder="alex@example.com"
                   />
                 </div>
@@ -160,7 +166,7 @@ export const ContactUs = () => {
                   required
                   value={formData.subject}
                   onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#334155] bg-[#0B0F1A] text-white focus:outline-none focus:border-[#22D3EE]"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#322659] bg-[#0A0713] text-white focus:outline-none focus:border-[#A855F7]"
                   placeholder="e.g. Architecture inquiry for cloud billing system"
                 />
               </div>
@@ -172,7 +178,7 @@ export const ContactUs = () => {
                   required
                   value={formData.message}
                   onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#334155] bg-[#0B0F1A] text-white focus:outline-none focus:border-[#22D3EE]"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#322659] bg-[#0A0713] text-white focus:outline-none focus:border-[#A855F7]"
                   placeholder="Please describe your deployment environment or technical inquiry..."
                 />
               </div>
@@ -180,7 +186,7 @@ export const ContactUs = () => {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full py-3 px-6 rounded-xl bg-gradient-to-r from-[#0EA5E9] via-[#22D3EE] to-[#00FFC6] text-[#0B0F1A] font-extrabold text-xs uppercase tracking-wider shadow-neon-glow transition hover:brightness-110 flex items-center justify-center gap-2"
+                className="w-full py-3 px-6 rounded-xl bg-gradient-to-r from-[#0EA5E9] via-[#A855F7] to-[#C084FC] text-white font-extrabold text-xs uppercase tracking-wider shadow-purple-glow transition hover:brightness-110 flex items-center justify-center gap-2"
               >
                 <Send className="w-4 h-4" />
                 <span>{submitting ? 'Submitting...' : 'Send Message'}</span>

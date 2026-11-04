@@ -37,7 +37,7 @@ export const CustomerLayout = () => {
 
   const navItems = [
     { label: 'Overview', to: '/customer/dashboard', icon: LayoutDashboard },
-    { label: 'My Projects', to: '/customer/projects', icon: FolderCode },
+    { label: 'Project Templates', to: '/customer/projects', icon: FolderCode },
     { label: 'My Orders', to: '/customer/orders', icon: ShoppingBag },
     { label: 'Download Center', to: '/customer/downloads', icon: Download },
     { label: 'Support Requests', to: '/customer/support', icon: LifeBuoy },

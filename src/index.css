@@ -4,8 +4,8 @@
 
 @layer base {
   body {
-    background-color: #0B0F1A;
-    color: #E2E8F0;
+    background-color: #0A0713;
+    color: #F8FAFC;
     scroll-behavior: smooth;
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     overflow-x: hidden;
@@ -14,15 +14,15 @@
   }
 }
 
-/* High-Performance Cyber Harbor Background (Zero GPU lag) */
+/* High-Performance Purple Cyber Harbor Background */
 .bg-grid-pattern {
   background-size: 40px 40px;
   background-image: 
-    linear-gradient(to right, rgba(51, 65, 85, 0.18) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(51, 65, 85, 0.18) 1px, transparent 1px);
+    linear-gradient(to right, rgba(147, 51, 234, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(147, 51, 234, 0.08) 1px, transparent 1px);
 }
 
-/* Fast Lightweight Beacon Light */
+/* Fast Lightweight Beacon Light with Purple Glow */
 .lighthouse-beam {
   position: absolute;
   top: -80px;
@@ -30,34 +30,34 @@
   transform: translateX(-50%);
   width: 700px;
   height: 350px;
-  background: radial-gradient(ellipse at 50% 0%, rgba(34, 211, 238, 0.12) 0%, rgba(10, 132, 255, 0.05) 50%, transparent 75%);
+  background: radial-gradient(ellipse at 50% 0%, rgba(168, 85, 247, 0.25) 0%, rgba(147, 51, 234, 0.12) 50%, transparent 75%);
   pointer-events: none;
   z-index: 0;
 }
 
-/* High-Performance Surfaces (No heavy blur, crisp 60+ FPS) */
+/* High-Performance Surfaces */
 .glass-panel {
-  background: #131B2E;
-  border: 1px solid rgba(51, 65, 85, 0.65);
+  background: #140F28;
+  border: 1px solid rgba(50, 38, 89, 0.7);
 }
 
 .glass-panel-glow {
-  background: #131B2E;
-  border: 1px solid rgba(34, 211, 238, 0.35);
-  box-shadow: 0 4px 20px -2px rgba(14, 165, 233, 0.15);
+  background: #140F28;
+  border: 1px solid rgba(168, 85, 247, 0.5);
+  box-shadow: 0 4px 20px -2px rgba(147, 51, 234, 0.3);
 }
 
 .glass-panel-neon {
-  background: #0F172A;
-  border: 1px solid rgba(0, 255, 198, 0.35);
-  box-shadow: 0 4px 20px -2px rgba(0, 255, 198, 0.15);
+  background: #0E0A1C;
+  border: 1px solid rgba(192, 132, 252, 0.5);
+  box-shadow: 0 4px 20px -2px rgba(168, 85, 247, 0.35);
 }
 
-/* Fast Vessel Cards */
+/* Fast Vessel Cards with Purple Neon Hover */
 .vessel-card {
   position: relative;
-  background: #131B2E;
-  border: 1px solid rgba(51, 65, 85, 0.7);
+  background: #140F28;
+  border: 1px solid rgba(50, 38, 89, 0.8);
   border-radius: 1rem;
   overflow: hidden;
   transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
@@ -66,19 +66,25 @@
 
 .vessel-card:hover {
   transform: translateY(-4px);
-  border-color: rgba(34, 211, 238, 0.65);
-  box-shadow: 0 12px 24px -10px rgba(14, 165, 233, 0.25);
+  border-color: rgba(168, 85, 247, 0.8);
+  box-shadow: 0 12px 28px -8px rgba(147, 51, 234, 0.45);
 }
 
-/* Neon Gradient Textures */
+/* Purple & Pure White Gradient Textures */
 .text-gradient-cyan {
-  background: linear-gradient(135deg, #0EA5E9 0%, #22D3EE 50%, #00FFC6 100%);
+  background: linear-gradient(135deg, #FFFFFF 0%, #E9D5FF 35%, #A855F7 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .text-gradient-silver {
-  background: linear-gradient(135deg, #FFFFFF 0%, #E2E8F0 50%, #94A3B8 100%);
+  background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 50%, #C084FC 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-purple {
+  background: linear-gradient(135deg, #FFFFFF 0%, #C084FC 50%, #9333EA 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -92,37 +98,28 @@
   position: absolute;
   inset: -2px;
   border-radius: 9999px;
-  background: rgba(0, 255, 198, 0.4);
+  background: rgba(168, 85, 247, 0.6);
   animation: beaconPulse 2.5s ease-out infinite;
 }
 
 @keyframes beaconPulse {
   0% { transform: scale(1); opacity: 0.8; }
-  100% { transform: scale(2); opacity: 0; }
+  50% { transform: scale(1.6); opacity: 0; }
+  100% { transform: scale(1.6); opacity: 0; }
 }
 
-/* Smooth Fade In */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.animate-fadeIn {
-  animation: fadeIn 0.25s ease-out forwards;
-}
-
-/* Futuristic Scrollbar */
+/* Custom Scrollbars */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #0B0F1A;
+  background: #0A0713;
 }
 ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: #322659;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #0EA5E9;
+  background: #9333EA;
 }

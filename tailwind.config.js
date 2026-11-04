@@ -9,30 +9,42 @@ export default {
     extend: {
       colors: {
         harbor: {
-          // Exact colors from client reference images (NovaTech & Azul Ciano palette)
-          dark: '#0B0F1A',          // NovaTech Deep Midnight Base
-          slateDark: '#0F172A',     // Image 1: #0F172A Primary Dark Slate
-          surface: '#131B2E',       // Futuristic elevated card surface
-          surfaceLight: '#1E293B',  // Elevated secondary container
-          steel: '#334155',         // Image 1: #334155 Slate border/sub-element
-          electric: '#0EA5E9',      // Image 1: #0EA5E9 Electric Blue
-          blue: '#0A84FF',          // NovaTech Electric Blue #0A84FF
-          cyan: '#22D3EE',          // Image 1: #22D3EE Cyan
-          neon: '#00FFC6',          // NovaTech Neon Cyan #00FFC6
-          silver: '#C0C7D1',        // NovaTech Metallic Silver #C0C7D1
-          ice: '#E2E8F0',           // Image 1: #E2E8F0 Ice Light White
-          // Backward compatibility mappings
-          navy: '#0B0F1A',
-          navyDark: '#070A12',
-          navyLight: '#131B2E',
-          blueDark: '#0284C7',
-          blueLight: '#38BDF8',
-          cyanDark: '#06B6D4',
-          cyanLight: '#67E8F9',
-          lightBg: '#0B0F1A',       // Modern futuristic generation dark theme
-          gold: '#FFB03E',
-          goldLight: '#FFC36E',
-          border: '#1E293B',
+          // Deep Cosmic Purple-Black Dark Foundation (Matches the logo's background)
+          dark: '#0A0713',          // Primary Obsidian Purple-Black
+          slateDark: '#0E0A1C',     // Dark slate container
+          surface: '#140F28',       // Futuristic elevated card surface
+          surfaceLight: '#1C1636',  // Elevated secondary container
+          steel: '#322659',         // Purple-slate border/sub-element
+          silver: '#C4B5FD',        // Soft metallic lavender-silver
+          ice: '#F8FAFC',           // Crisp White
+
+          // Logo Palette: Vibrant Electric Purple, Soft Lavender, Pure White
+          purple: '#9333EA',        // Brand Primary Purple (from CoderHarbor logo)
+          purpleLight: '#A855F7',   // Electric Violet
+          purpleGlow: '#C084FC',    // Radiant Lavender Glow
+          lavender: '#C084FC',      // Soft Lavender Accent
+          white: '#FFFFFF',         // Pure White (from Coder logo text)
+          chartreuse: '#A855F7',    // Mapped to Purple for consistency
+          tomato: '#8B5CF6',        // Mapped to Electric Purple
+
+          // Dynamic Mappings for UI Accents
+          neon: '#A855F7',          // Primary action & glow (Electric Purple)
+          cyan: '#C084FC',          // Secondary lavender tone
+          electric: '#9333EA',      // Brand Royal Purple
+          blue: '#38BDF8',          // Ship Cyan/Blue from logo center
+          
+          // Legacy mappings mapped into Purple & White ecosystem
+          navy: '#0A0713',
+          navyDark: '#06040C',
+          navyLight: '#140F28',
+          blueDark: '#7C3AED',
+          blueLight: '#C084FC',
+          cyanDark: '#8B5CF6',
+          cyanLight: '#A855F7',
+          lightBg: '#0A0713',
+          gold: '#C084FC',
+          goldLight: '#DDD6FE',
+          border: '#322659',
         }
       },
       fontFamily: {
@@ -40,16 +52,18 @@ export default {
         mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
       },
       boxShadow: {
-        'harbor-sm': '0 2px 10px -2px rgba(14, 165, 233, 0.1), 0 1px 4px -1px rgba(0, 0, 0, 0.4)',
-        'harbor-md': '0 8px 30px -4px rgba(14, 165, 233, 0.15), 0 4px 16px -2px rgba(0, 0, 0, 0.5)',
-        'harbor-lg': '0 16px 40px -6px rgba(34, 211, 238, 0.2), 0 8px 24px -4px rgba(0, 0, 0, 0.6)',
-        'harbor-glow': '0 0 35px -5px rgba(34, 211, 238, 0.35)',
-        'neon-glow': '0 0 25px rgba(0, 255, 198, 0.35)',
-        'blue-glow': '0 0 30px rgba(10, 132, 255, 0.3)',
+        'harbor-sm': '0 2px 10px -2px rgba(147, 51, 234, 0.25), 0 1px 4px -1px rgba(0, 0, 0, 0.5)',
+        'harbor-md': '0 8px 30px -4px rgba(147, 51, 234, 0.3), 0 4px 16px -2px rgba(0, 0, 0, 0.6)',
+        'harbor-lg': '0 16px 40px -6px rgba(168, 85, 247, 0.35), 0 8px 24px -4px rgba(0, 0, 0, 0.7)',
+        'harbor-glow': '0 0 35px -5px rgba(168, 85, 247, 0.5)',
+        'neon-glow': '0 0 25px rgba(168, 85, 247, 0.55)',
+        'purple-glow': '0 0 30px rgba(147, 51, 234, 0.5)',
+        'white-glow': '0 0 20px rgba(255, 255, 255, 0.35)',
+        'blue-glow': '0 0 30px rgba(56, 189, 248, 0.4)',
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-        'cyber-grid': 'linear-gradient(to right, rgba(34, 211, 238, 0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(34, 211, 238, 0.05) 1px, transparent 1px)',
+        'cyber-grid': 'linear-gradient(to right, rgba(147, 51, 234, 0.08) 1px, transparent 1px), linear-gradient(to bottom, rgba(147, 51, 234, 0.08) 1px, transparent 1px)',
       }
     },
   },

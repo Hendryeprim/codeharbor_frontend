@@ -5,7 +5,7 @@ export const DigitalLicense = () => {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-[#E2E8F0]">
       <div className="text-center mb-10">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold uppercase tracking-wider bg-[#00FFC6]/10 text-[#00FFC6] border border-[#00FFC6]/30 mb-3">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold uppercase tracking-wider bg-[#C084FC]/10 text-[#C084FC] border border-[#C084FC]/30 mb-3">
           <Terminal className="w-3.5 h-3.5" />
           <span>Legal Framework</span>
         </div>
@@ -17,7 +17,7 @@ export const DigitalLicense = () => {
         </p>
       </div>
 
-      <div className="bg-[#131B2E]/90 rounded-3xl p-8 sm:p-10 border border-[#334155]/80 shadow-harbor-sm space-y-8 text-xs sm:text-sm text-[#C0C7D1] leading-relaxed">
+      <div className="bg-[#140F28]/90 rounded-3xl p-8 sm:p-10 border border-[#322659]/80 shadow-harbor-sm space-y-8 text-xs sm:text-sm text-[#C0C7D1] leading-relaxed">
         <section className="space-y-3">
           <h2 className="text-base font-bold text-white">1. Grant of License</h2>
           <p>
@@ -29,8 +29,8 @@ export const DigitalLicense = () => {
           <h2 className="text-base font-bold text-white">2. Permitted Actions vs Prohibited Actions</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="p-4 rounded-2xl bg-emerald-950/40 border border-emerald-800/80 space-y-2 text-xs">
-              <h3 className="font-bold text-[#00FFC6] flex items-center gap-1.5 text-sm">
-                <CheckCircle2 className="w-4 h-4 text-[#00FFC6]" />
+              <h3 className="font-bold text-[#C084FC] flex items-center gap-1.5 text-sm">
+                <CheckCircle2 className="w-4 h-4 text-[#C084FC]" />
                 <span>You May:</span>
               </h3>
               <ul className="list-disc list-inside space-y-1 text-emerald-200">

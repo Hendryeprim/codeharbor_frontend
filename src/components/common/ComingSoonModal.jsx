@@ -6,14 +6,14 @@ export const ComingSoonModal = ({ isOpen, onClose, productTitle, price }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0B0F1A]/85 backdrop-blur-md animate-fadeIn">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0A0713]/85 backdrop-blur-md animate-fadeIn">
       <div
-        className="bg-[#0F172A] rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-harbor-lg border border-[#334155] relative text-left text-[#E2E8F0]"
+        className="bg-[#0E0A1C] rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-harbor-lg border border-[#322659] relative text-left text-[#E2E8F0]"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-[#1E293B] transition"
+          className="absolute top-5 right-5 text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-[#1C1636] transition"
           aria-label="Close"
         >
           <X className="w-5 h-5" />
@@ -31,16 +31,16 @@ export const ComingSoonModal = ({ isOpen, onClose, productTitle, price }) => {
           Online Purchasing is Coming Soon
         </h3>
 
-        <div className="my-4 p-4 rounded-2xl bg-[#131B2E] border border-[#334155] text-xs text-slate-300 space-y-2">
+        <div className="my-4 p-4 rounded-2xl bg-[#140F28] border border-[#322659] text-xs text-slate-300 space-y-2">
           {productTitle && (
             <p className="font-semibold text-white">
-              Selected: <span className="text-[#22D3EE]">{productTitle}</span>
+              Selected: <span className="text-[#A855F7]">{productTitle}</span>
             </p>
           )}
           {price !== undefined && (
             <p className="text-slate-400">
               Listed Price:{' '}
-              <span className="font-black text-[#00FFC6]">${Number(price).toFixed(2)} USD</span>
+              <span className="font-black text-[#C084FC]">₹{Number(price).toFixed(2)} INR</span>
             </p>
           )}
           <p className="text-[11px] text-slate-400 pt-1 leading-relaxed">
@@ -56,14 +56,14 @@ export const ComingSoonModal = ({ isOpen, onClose, productTitle, price }) => {
           <Link
             to="/contact"
             onClick={onClose}
-            className="w-full sm:w-auto flex-1 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0EA5E9] to-[#00FFC6] text-[#0B0F1A] font-extrabold text-xs uppercase tracking-wider transition shadow-neon-glow hover:brightness-110"
+            className="w-full sm:w-auto flex-1 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#A855F7] to-[#C084FC] text-white font-extrabold text-xs uppercase tracking-wider transition shadow-purple-glow hover:brightness-110"
           >
             <span>Inquire Directly</span>
             <ArrowRight className="w-4 h-4" />
           </Link>
           <button
             onClick={onClose}
-            className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-[#334155] text-slate-300 font-semibold hover:bg-[#1E293B] hover:text-white transition text-xs"
+            className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-[#322659] text-slate-300 font-semibold hover:bg-[#1C1636] hover:text-white transition text-xs"
           >
             Close
           </button>

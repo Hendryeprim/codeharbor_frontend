@@ -38,11 +38,11 @@ export const Login = () => {
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 text-[#E2E8F0]">
-      <div className="max-w-md w-full space-y-7 bg-[#131B2E]/90 p-8 sm:p-10 rounded-3xl border border-[#334155]/80 shadow-harbor-lg backdrop-blur-xl">
+      <div className="max-w-md w-full space-y-7 bg-[#140F28]/90 p-8 sm:p-10 rounded-3xl border border-[#322659]/80 shadow-harbor-lg backdrop-blur-xl">
         <div className="text-center">
           <Link to="/" className="inline-block mb-3">
             <div className="relative inline-block">
-              <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-[#0EA5E9] to-[#00FFC6] opacity-30 blur-sm" />
+              <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-[#0EA5E9] to-[#C084FC] opacity-30 blur-sm" />
               <img src="/image.png" alt="CoderHarbor" className="relative h-12 w-auto mx-auto object-contain" />
             </div>
           </Link>
@@ -65,14 +65,14 @@ export const Login = () => {
           <div>
             <label className="block font-bold text-slate-300 mb-1">Email Address</label>
             <div className="relative">
-              <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#22D3EE]" />
+              <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#A855F7]" />
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="name@company.com"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#334155] bg-[#0B0F1A] text-white focus:outline-none focus:border-[#22D3EE]"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#322659] bg-[#0A0713] text-white focus:outline-none focus:border-[#A855F7]"
               />
             </div>
           </div>
@@ -80,19 +80,19 @@ export const Login = () => {
           <div>
             <div className="flex items-center justify-between mb-1">
               <label className="block font-bold text-slate-300">Password</label>
-              <Link to="/contact" className="text-xs text-[#22D3EE] hover:underline">
+              <Link to="/contact" className="text-xs text-[#A855F7] hover:underline">
                 Forgot password?
               </Link>
             </div>
             <div className="relative">
-              <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#22D3EE]" />
+              <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#A855F7]" />
               <input
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#334155] bg-[#0B0F1A] text-white focus:outline-none focus:border-[#22D3EE]"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#322659] bg-[#0A0713] text-white focus:outline-none focus:border-[#A855F7]"
               />
             </div>
           </div>
@@ -100,16 +100,34 @@ export const Login = () => {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#0EA5E9] via-[#22D3EE] to-[#00FFC6] text-[#0B0F1A] font-extrabold text-xs uppercase tracking-wider shadow-neon-glow transition hover:brightness-110 flex items-center justify-center gap-2"
+            className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#9333EA] via-[#A855F7] to-[#7C3AED] text-white font-extrabold text-xs uppercase tracking-wider shadow-purple-glow transition hover:brightness-110 flex items-center justify-center gap-2 cursor-pointer"
           >
             <LogIn className="w-4 h-4" />
             <span>{submitting ? 'Authenticating...' : 'Sign In'}</span>
           </button>
         </form>
 
+        {/* Quick Demo Credentials Helper */}
+        <div className="p-3 rounded-2xl bg-[#0E0A1C] border border-[#322659]/80 text-[11px] font-mono space-y-1.5">
+          <div className="flex items-center justify-between">
+            <span className="text-[#C084FC] font-bold">Admin Credentials:</span>
+            <button
+              type="button"
+              onClick={() => {
+                setEmail('admin@coderharbor.com');
+                setPassword('Admin@12345');
+              }}
+              className="text-[#A855F7] hover:underline cursor-pointer font-bold"
+            >
+              Fill Credentials
+            </button>
+          </div>
+          <div className="text-slate-400">admin@coderharbor.com / Admin@12345</div>
+        </div>
+
         <div className="text-center text-xs text-slate-400">
           Don't have an account?{' '}
-          <Link to="/register" className="font-bold text-[#00FFC6] hover:underline">
+          <Link to="/register" className="font-bold text-[#C084FC] hover:underline">
             Register now
           </Link>
         </div>

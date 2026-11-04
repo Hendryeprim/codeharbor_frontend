@@ -59,16 +59,16 @@ export const HarborAICopilot = () => {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 z-50 group flex items-center gap-3 px-5 py-3 rounded-full bg-[#131B2E]/90 border border-[#22D3EE]/50 hover:border-[#00FFC6] shadow-harbor-glow hover:shadow-neon-glow transition-all duration-300 backdrop-blur-xl animate-fadeIn hover:scale-105"
+          className="fixed bottom-6 right-6 z-50 group flex items-center gap-3 px-5 py-3 rounded-full bg-[#140F28]/90 border border-[#A855F7]/50 hover:border-[#C084FC] shadow-harbor-glow hover:shadow-purple-glow transition-all duration-300 backdrop-blur-xl animate-fadeIn hover:scale-105"
         >
           <div className="relative">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#00FFC6] absolute -top-0.5 -right-0.5 animate-ping" />
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#0EA5E9] to-[#00FFC6] flex items-center justify-center text-[#0B0F1A] font-black">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#C084FC] absolute -top-0.5 -right-0.5 animate-ping" />
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#A855F7] to-[#C084FC] flex items-center justify-center text-white font-black">
               <Bot className="w-5 h-5" />
             </div>
           </div>
           <div className="text-left">
-            <p className="text-[10px] uppercase font-bold tracking-wider text-[#00FFC6] leading-none">
+            <p className="text-[10px] uppercase font-bold tracking-wider text-[#C084FC] leading-none">
               Next-Gen Copilot
             </p>
             <p className="text-xs font-extrabold text-[#E2E8F0] group-hover:text-white transition">
@@ -80,20 +80,20 @@ export const HarborAICopilot = () => {
 
       {/* Futuristic Drawer / Modal */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-[#0B0F1A]/80 backdrop-blur-md animate-fadeIn">
-          <div className="w-full max-w-2xl bg-[#0F172A] border border-[#22D3EE]/40 sm:rounded-3xl shadow-harbor-lg overflow-hidden flex flex-col max-h-[90vh] text-[#E2E8F0]">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-[#0A0713]/80 backdrop-blur-md animate-fadeIn">
+          <div className="w-full max-w-2xl bg-[#0E0A1C] border border-[#A855F7]/40 sm:rounded-3xl shadow-harbor-lg overflow-hidden flex flex-col max-h-[90vh] text-[#E2E8F0]">
             {/* Header */}
-            <div className="px-6 py-4 bg-[#131B2E]/80 border-b border-[#334155]/60 flex items-center justify-between">
+            <div className="px-6 py-4 bg-[#140F28]/80 border-b border-[#322659]/60 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#0EA5E9] via-[#22D3EE] to-[#00FFC6] p-0.5 shadow-neon-glow">
-                  <div className="w-full h-full bg-[#0B0F1A] rounded-[10px] flex items-center justify-center text-[#00FFC6]">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#A855F7] via-[#A855F7] to-[#C084FC] p-0.5 shadow-purple-glow">
+                  <div className="w-full h-full bg-[#0A0713] rounded-[10px] flex items-center justify-center text-[#C084FC]">
                     <Bot className="w-5 h-5" />
                   </div>
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="text-sm font-extrabold text-white">Harbor AI Copilot</h3>
-                    <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-[#00FFC6]/10 text-[#00FFC6] border border-[#00FFC6]/30">
+                    <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-[#C084FC]/10 text-[#C084FC] border border-[#C084FC]/30">
                       v2.5 AI Engine
                     </span>
                   </div>
@@ -105,7 +105,7 @@ export const HarborAICopilot = () => {
 
               <button
                 onClick={() => setIsOpen(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-[#334155]/50 transition"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-[#322659]/50 transition"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -116,9 +116,9 @@ export const HarborAICopilot = () => {
               {/* Initial Greeting */}
               {!response && !loading && (
                 <div className="space-y-4">
-                  <div className="p-4 rounded-2xl bg-[#131B2E]/70 border border-[#334155]/60 space-y-2">
-                    <p className="text-xs font-semibold text-[#22D3EE] flex items-center gap-1.5">
-                      <Sparkles className="w-4 h-4 text-[#00FFC6]" />
+                  <div className="p-4 rounded-2xl bg-[#140F28]/70 border border-[#322659]/60 space-y-2">
+                    <p className="text-xs font-semibold text-[#A855F7] flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-[#C084FC]" />
                       <span>Ask Harbor AI for Instant Project Recommendations</span>
                     </p>
                     <p className="text-xs text-[#C0C7D1] leading-relaxed">
@@ -138,7 +138,7 @@ export const HarborAICopilot = () => {
                             setPrompt(qp);
                             handleAskAI(qp);
                           }}
-                          className="px-3 py-1.5 rounded-xl bg-[#1E293B] hover:bg-[#0EA5E9]/20 border border-[#334155] hover:border-[#22D3EE]/50 text-xs text-[#E2E8F0] hover:text-[#22D3EE] transition"
+                          className="px-3 py-1.5 rounded-xl bg-[#1C1636] hover:bg-[#A855F7]/20 border border-[#322659] hover:border-[#A855F7]/50 text-xs text-[#E2E8F0] hover:text-[#A855F7] transition"
                         >
                           {qp}
                         </button>
@@ -152,10 +152,10 @@ export const HarborAICopilot = () => {
               {loading && (
                 <div className="py-12 flex flex-col items-center justify-center gap-3">
                   <div className="relative">
-                    <Loader2 className="w-10 h-10 animate-spin text-[#00FFC6]" />
-                    <Sparkles className="w-4 h-4 text-[#22D3EE] absolute inset-0 m-auto" />
+                    <Loader2 className="w-10 h-10 animate-spin text-[#C084FC]" />
+                    <Sparkles className="w-4 h-4 text-[#A855F7] absolute inset-0 m-auto" />
                   </div>
-                  <p className="text-xs font-mono text-[#00FFC6] animate-pulse">
+                  <p className="text-xs font-mono text-[#C084FC] animate-pulse">
                     Analyzing semantic architecture & repository vectors...
                   </p>
                 </div>
@@ -172,13 +172,13 @@ export const HarborAICopilot = () => {
               {response && (
                 <div className="space-y-5 animate-fadeIn">
                   {/* AI Insight Box */}
-                  <div className="p-4 rounded-2xl bg-gradient-to-br from-[#131B2E] via-[#0F172A] to-[#1E293B] border border-[#22D3EE]/30 space-y-3 shadow-harbor-glow">
+                  <div className="p-4 rounded-2xl bg-gradient-to-br from-[#140F28] via-[#0E0A1C] to-[#1C1636] border border-[#A855F7]/30 space-y-3 shadow-harbor-glow">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#00FFC6] flex items-center gap-1.5">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#C084FC] flex items-center gap-1.5">
                         <Cpu className="w-3.5 h-3.5" />
                         <span>AI Architectural Analysis</span>
                       </span>
-                      <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-[#00FFC6]/15 text-[#00FFC6] border border-[#00FFC6]/40">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-[#C084FC]/15 text-[#C084FC] border border-[#C084FC]/40">
                         Match Confidence: {response.aiInsight?.aiConfidence}
                       </span>
                     </div>
@@ -187,14 +187,14 @@ export const HarborAICopilot = () => {
                       {response.aiInsight?.summary}
                     </p>
 
-                    <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#334155]/60 text-[11px]">
+                    <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#322659]/60 text-[11px]">
                       <div>
                         <span className="text-slate-400">Target Domain:</span>{' '}
                         <span className="font-semibold text-white">{response.aiInsight?.detectedDomain}</span>
                       </div>
                       <div>
                         <span className="text-slate-400">Security Layer:</span>{' '}
-                        <span className="font-semibold text-[#22D3EE]">Zero-Trust RBAC</span>
+                        <span className="font-semibold text-[#A855F7]">Zero-Trust RBAC</span>
                       </div>
                     </div>
                   </div>
@@ -202,7 +202,7 @@ export const HarborAICopilot = () => {
                   {/* Matched Projects */}
                   <div>
                     <h4 className="text-xs font-bold uppercase tracking-wider text-[#C0C7D1] mb-3 flex items-center gap-2">
-                      <Layers className="w-3.5 h-3.5 text-[#0EA5E9]" />
+                      <Layers className="w-3.5 h-3.5 text-[#A855F7]" />
                       <span>Matched Codebase Repositories ({response.matches?.length})</span>
                     </h4>
 
@@ -210,24 +210,24 @@ export const HarborAICopilot = () => {
                       {response.matches?.map((m) => (
                         <div
                           key={m.id}
-                          className="p-3.5 rounded-2xl bg-[#131B2E]/90 border border-[#334155] hover:border-[#22D3EE]/60 transition flex items-center justify-between gap-3 group"
+                          className="p-3.5 rounded-2xl bg-[#140F28]/90 border border-[#322659] hover:border-[#A855F7]/60 transition flex items-center justify-between gap-3 group"
                         >
                           <div className="flex items-center gap-3 overflow-hidden">
                             <img
                               src={m.thumbnail || 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=200&q=80'}
                               alt={m.title}
-                              className="w-12 h-12 rounded-xl object-cover shrink-0 border border-[#334155]"
+                              className="w-12 h-12 rounded-xl object-cover shrink-0 border border-[#322659]"
                             />
                             <div className="overflow-hidden">
                               <div className="flex items-center gap-2">
-                                <span className="px-2 py-0.5 rounded text-[9px] font-extrabold bg-[#0EA5E9]/15 text-[#0EA5E9] border border-[#0EA5E9]/30">
+                                <span className="px-2 py-0.5 rounded text-[9px] font-extrabold bg-[#A855F7]/15 text-[#A855F7] border border-[#A855F7]/30">
                                   {m.aiMatchScore}% Match
                                 </span>
                                 {m.isFree && (
-                                  <span className="text-[9px] font-extrabold text-[#00FFC6]">FREE</span>
+                                  <span className="text-[9px] font-extrabold text-[#C084FC]">FREE</span>
                                 )}
                               </div>
-                              <p className="text-xs font-bold text-white truncate group-hover:text-[#22D3EE] transition mt-0.5">
+                              <p className="text-xs font-bold text-white truncate group-hover:text-[#A855F7] transition mt-0.5">
                                 {m.title}
                               </p>
                               <p className="text-[10px] text-slate-400 truncate">{m.shortDescription}</p>
@@ -237,7 +237,7 @@ export const HarborAICopilot = () => {
                           <Link
                             to={`/projects/${m.slug}`}
                             onClick={() => setIsOpen(false)}
-                            className="px-3 py-1.5 rounded-xl bg-[#0EA5E9] hover:bg-[#00FFC6] text-[#0B0F1A] font-bold text-xs transition shrink-0 flex items-center gap-1 shadow-sm"
+                            className="px-3 py-1.5 rounded-xl bg-[#A855F7] hover:bg-[#C084FC] text-white font-bold text-xs transition shrink-0 flex items-center gap-1 shadow-sm"
                           >
                             <span>Inspect</span>
                             <ArrowRight className="w-3.5 h-3.5" />
@@ -251,18 +251,18 @@ export const HarborAICopilot = () => {
             </div>
 
             {/* Input Bar */}
-            <form onSubmit={(e) => { e.preventDefault(); handleAskAI(); }} className="p-4 bg-[#131B2E]/90 border-t border-[#334155]/60 flex gap-2">
+            <form onSubmit={(e) => { e.preventDefault(); handleAskAI(); }} className="p-4 bg-[#140F28]/90 border-t border-[#322659]/60 flex gap-2">
               <input
                 type="text"
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 placeholder="Ask Harbor AI (e.g. 'Enterprise ERP with inventory tracking and Docker')..."
-                className="flex-1 px-4 py-2.5 rounded-xl bg-[#0B0F1A] border border-[#334155] text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#22D3EE] transition"
+                className="flex-1 px-4 py-2.5 rounded-xl bg-[#0A0713] border border-[#322659] text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#A855F7] transition"
               />
               <button
                 type="submit"
                 disabled={loading || !prompt.trim()}
-                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0EA5E9] to-[#00FFC6] text-[#0B0F1A] font-bold text-xs flex items-center gap-1.5 transition shadow-harbor-glow hover:brightness-110 disabled:opacity-40"
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#A855F7] to-[#C084FC] text-white font-bold text-xs flex items-center gap-1.5 transition shadow-harbor-glow hover:brightness-110 disabled:opacity-40"
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                 <span>Ask AI</span>

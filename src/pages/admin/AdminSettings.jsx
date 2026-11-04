@@ -60,7 +60,7 @@ export const AdminSettings = () => {
   if (loading) {
     return (
       <div className="py-24 flex justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-[#0EA5E9]" />
+        <Loader2 className="w-8 h-8 animate-spin text-[#A855F7]" />
       </div>
     );
   }
@@ -68,8 +68,8 @@ export const AdminSettings = () => {
   return (
     <div className="max-w-3xl space-y-6">
       <div>
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#0EA5E9]/10 border border-[#0EA5E9]/30 text-[#22D3EE] text-[11px] font-semibold tracking-wider uppercase mb-2">
-          <Zap className="w-3.5 h-3.5 text-[#00FFC6]" />
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#A855F7]/10 border border-[#A855F7]/30 text-[#A855F7] text-[11px] font-semibold tracking-wider uppercase mb-2">
+          <Zap className="w-3.5 h-3.5 text-[#C084FC]" />
           Platform Configuration & Metadata
         </div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-[#E2E8F0] tracking-tight">
@@ -80,7 +80,7 @@ export const AdminSettings = () => {
         </p>
       </div>
 
-      <div className="bg-gradient-to-br from-[#131B2E] to-[#0F172A] rounded-2xl p-6 sm:p-8 border border-[#334155]/60 shadow-xl relative overflow-hidden">
+      <div className="bg-gradient-to-br from-[#140F28] to-[#0E0A1C] rounded-2xl p-6 sm:p-8 border border-[#322659]/60 shadow-xl relative overflow-hidden">
         {success && (
           <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-xs text-emerald-400 flex items-center gap-2 mb-6">
             <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
@@ -102,7 +102,7 @@ export const AdminSettings = () => {
               type="text"
               value={settings.site_title || ''}
               onChange={(e) => handleChange('site_title', e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#334155]/80 bg-[#0F172A] text-[#E2E8F0] focus:outline-none focus:border-[#0EA5E9]"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#322659]/80 bg-[#0E0A1C] text-[#E2E8F0] focus:outline-none focus:border-[#A855F7]"
             />
           </div>
 
@@ -112,7 +112,7 @@ export const AdminSettings = () => {
               type="text"
               value={settings.site_tagline || ''}
               onChange={(e) => handleChange('site_tagline', e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#334155]/80 bg-[#0F172A] text-[#E2E8F0] focus:outline-none focus:border-[#0EA5E9]"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#322659]/80 bg-[#0E0A1C] text-[#E2E8F0] focus:outline-none focus:border-[#A855F7]"
             />
           </div>
 
@@ -123,7 +123,7 @@ export const AdminSettings = () => {
                 type="email"
                 value={settings.contact_email || ''}
                 onChange={(e) => handleChange('contact_email', e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-[#334155]/80 bg-[#0F172A] text-[#E2E8F0] focus:outline-none focus:border-[#0EA5E9]"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-[#322659]/80 bg-[#0E0A1C] text-[#E2E8F0] focus:outline-none focus:border-[#A855F7]"
               />
             </div>
             <div>
@@ -132,7 +132,7 @@ export const AdminSettings = () => {
                 type="text"
                 value={settings.contact_phone || ''}
                 onChange={(e) => handleChange('contact_phone', e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-[#334155]/80 bg-[#0F172A] text-[#E2E8F0] focus:outline-none focus:border-[#0EA5E9]"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-[#322659]/80 bg-[#0E0A1C] text-[#E2E8F0] focus:outline-none focus:border-[#A855F7]"
               />
             </div>
           </div>
@@ -143,7 +143,7 @@ export const AdminSettings = () => {
               type="text"
               value={settings.contact_address || ''}
               onChange={(e) => handleChange('contact_address', e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#334155]/80 bg-[#0F172A] text-[#E2E8F0] focus:outline-none focus:border-[#0EA5E9]"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#322659]/80 bg-[#0E0A1C] text-[#E2E8F0] focus:outline-none focus:border-[#A855F7]"
             />
           </div>
 
@@ -153,7 +153,7 @@ export const AdminSettings = () => {
               rows={2}
               value={settings.purchasing_notice || ''}
               onChange={(e) => handleChange('purchasing_notice', e.target.value)}
-              className="w-full px-3.5 py-2 rounded-xl border border-amber-500/40 bg-[#0B0F1A] text-[#E2E8F0] focus:outline-none focus:border-amber-400"
+              className="w-full px-3.5 py-2 rounded-xl border border-amber-500/40 bg-[#0A0713] text-[#E2E8F0] focus:outline-none focus:border-amber-400"
             />
             <p className="text-[11px] text-amber-300/80 mt-1">
               Displayed prominently to customers on product pages and checkout modals while payment processing is in Coming Soon status.
@@ -164,7 +164,7 @@ export const AdminSettings = () => {
             <button
               type="submit"
               disabled={saving}
-              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#0EA5E9] to-[#0A84FF] hover:shadow-neon-glow text-white font-bold text-xs transition duration-200 flex items-center gap-2 shadow-lg disabled:opacity-50"
+              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#A855F7] to-[#0A84FF] hover:shadow-purple-glow text-white font-bold text-xs transition duration-200 flex items-center gap-2 shadow-lg disabled:opacity-50"
             >
               <Save className="w-4 h-4" />
               <span>{saving ? 'Saving...' : 'Save Settings'}</span>
