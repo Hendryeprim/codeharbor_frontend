@@ -107,24 +107,6 @@ export const Login = () => {
           </button>
         </form>
 
-        {/* Quick Demo Credentials Helper */}
-        <div className="p-3 rounded-2xl bg-[#0E0A1C] border border-[#322659]/80 text-[11px] font-mono space-y-1.5">
-          <div className="flex items-center justify-between">
-            <span className="text-[#C084FC] font-bold">Admin Credentials:</span>
-            <button
-              type="button"
-              onClick={() => {
-                setEmail('admin@coderharbor.com');
-                setPassword('Admin@12345');
-              }}
-              className="text-[#A855F7] hover:underline cursor-pointer font-bold"
-            >
-              Fill Credentials
-            </button>
-          </div>
-          <div className="text-slate-400">admin@coderharbor.com / Admin@12345</div>
-        </div>
-
         <div className="text-center text-xs text-slate-400">
           Don't have an account?{' '}
           <Link to="/register" className="font-bold text-[#C084FC] hover:underline">
