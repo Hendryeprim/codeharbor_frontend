@@ -2,10 +2,9 @@ export const getApiBaseUrl = () => {
   if (import.meta.env.VITE_API_BASE_URL) {
     return import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '');
   }
-  // When running on live domain coderharbor.com, automatically route to api.coderharbor.com
+  // When running on live domain coderharbor.com, automatically route to api.coderharbor.com via HTTPS
   if (typeof window !== 'undefined' && window.location.hostname && !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1')) {
-    const protocol = window.location.protocol; // preserves http: or https:
-    return `${protocol}//api.coderharbor.com/api`;
+    return 'https://api.coderharbor.com/api';
   }
   return '/api';
 
@@ -13,6 +12,19 @@ export const getApiBaseUrl = () => {
 };
 
 const API_BASE_URL = getApiBaseUrl();
+
+export const getFullImageUrl = (url) => {
+  if (!url || typeof url !== 'string') {
+    return 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=400&q=80';
+  }
+  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
+    return url;
+  }
+  // Route relative /uploads/... to backend domain
+  const apiBase = getApiBaseUrl().replace(/\/api\/?$/, '');
+  const cleanPath = url.startsWith('/') ? url : `/${url}`;
+  return `${apiBase}${cleanPath}`;
+};
 
 export const getAuthToken = () => localStorage.getItem('coderharbor_token');
 export const setAuthToken = (token) => {

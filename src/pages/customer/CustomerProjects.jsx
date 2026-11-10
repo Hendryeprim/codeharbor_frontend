@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { customerAPI, publicAPI } from '../../services/api';
+import { customerAPI, publicAPI, getFullImageUrl } from '../../services/api';
 import { ProjectCard } from '../../components/project/ProjectCard';
 import {
   FolderCode,
@@ -132,10 +132,7 @@ export const CustomerProjects = () => {
                     <div>
                       <div className="flex items-center gap-3 mb-4">
                         <img
-                          src={
-                            p.thumbnail ||
-                            'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=400&q=80'
-                          }
+                          src={getFullImageUrl(p.thumbnail)}
                           alt={p.title}
                           className="w-14 h-14 rounded-2xl object-cover shrink-0 border border-[#322659]"
                         />

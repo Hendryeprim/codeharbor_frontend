@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, Sparkles, Play, Loader2 } from 'lucide-react';
 import { ComingSoonBadge, FreeBadge, ProductTypeBadge } from '../common/Badge';
 import { LivePreviewModal } from '../common/LivePreviewModal';
+import { getFullImageUrl } from '../../services/api';
 
 export const ProjectCard = ({ project }) => {
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -17,7 +18,7 @@ export const ProjectCard = ({ project }) => {
   const projectCode = `CH-${String(project.id).padStart(3, '0')}`;
 
   // Optimize thumbnail URL for high-speed delivery
-  const rawThumbnail = project.thumbnail || 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=400&q=75';
+  const rawThumbnail = getFullImageUrl(project.thumbnail);
   const optimizedThumbnail = rawThumbnail.includes('unsplash.com') && !rawThumbnail.includes('w=400')
     ? `${rawThumbnail}&w=400&q=75&auto=format`
     : rawThumbnail;

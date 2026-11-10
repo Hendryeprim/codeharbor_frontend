@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { publicAPI, customerAPI } from '../../services/api';
+import { publicAPI, customerAPI, getFullImageUrl } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { ComingSoonBadge, FreeBadge, ProductTypeBadge } from '../../components/common/Badge';
 import { ComingSoonModal } from '../../components/common/ComingSoonModal';
@@ -56,7 +56,7 @@ export const ProjectDetails = () => {
         const res = await publicAPI.getProductBySlug(slug);
         if (res.success && res.product) {
           setProduct(res.product);
-          setSelectedImage(res.product.thumbnail || (res.product.images?.[0]?.imageUrl ?? null));
+          setSelectedImage(res.product.thumbnail ? getFullImageUrl(res.product.thumbnail) : (res.product.images?.[0]?.imageUrl ? getFullImageUrl(res.product.images[0].imageUrl) : null));
           if (res.product.previewStatus === 'READY' && res.product.previewUrl) {
             setActiveMediaTab('preview');
           } else {
@@ -135,8 +135,8 @@ export const ProjectDetails = () => {
   const isFree = isFreeDownload;
   const canDownload = isFreeDownload && product.downloadAllowed && product.files?.length > 0;
   const allImages = [
-    ...(product.thumbnail ? [{ id: 'thumb', imageUrl: product.thumbnail, altText: product.title }] : []),
-    ...(product.images || []),
+    ...(product.thumbnail ? [{ id: 'thumb', imageUrl: getFullImageUrl(product.thumbnail), altText: product.title }] : []),
+    ...(product.images || []).map((img) => ({ ...img, imageUrl: getFullImageUrl(img.imageUrl) })),
   ];
 
   return (

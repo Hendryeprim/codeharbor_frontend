@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { aiAPI } from '../../services/api';
+import { aiAPI, getFullImageUrl } from '../../services/api';
 import {
   Sparkles,
   Bot,
@@ -214,7 +214,7 @@ export const HarborAICopilot = () => {
                         >
                           <div className="flex items-center gap-3 overflow-hidden">
                             <img
-                              src={m.thumbnail || 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=200&q=80'}
+                              src={getFullImageUrl(m.thumbnail)}
                               alt={m.title}
                               className="w-12 h-12 rounded-xl object-cover shrink-0 border border-[#322659]"
                             />

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { adminAPI, publicAPI } from '../../services/api';
+import { adminAPI, publicAPI, getFullImageUrl } from '../../services/api';
 import { LivePreviewModal } from '../../components/common/LivePreviewModal';
 import {
   Package,
@@ -138,14 +138,27 @@ export const AdminProjects = () => {
     try {
       setLoading(true);
       const [prodRes, catRes, techRes] = await Promise.all([
-        adminAPI.getProducts(),
-        publicAPI.getCategories(),
-        publicAPI.getTechnologies(),
+        adminAPI.getProducts().catch((err) => {
+          console.error('Products fetch error:', err);
+          return { products: [] };
+        }),
+        adminAPI.getCategories().catch(async () => {
+          return await publicAPI.getCategories().catch((err) => {
+            console.error('Categories fetch error:', err);
+            return { categories: [] };
+          });
+        }),
+        adminAPI.getTechnologies().catch(async () => {
+          return await publicAPI.getTechnologies().catch((err) => {
+            console.error('Technologies fetch error:', err);
+            return { technologies: [] };
+          });
+        }),
       ]);
 
-      if (prodRes.success) setProducts(prodRes.products || []);
-      if (catRes.success) setCategories(catRes.categories || []);
-      if (techRes.success) setTechnologies(techRes.technologies || []);
+      if (prodRes && prodRes.products) setProducts(prodRes.products || []);
+      if (catRes && catRes.categories) setCategories(catRes.categories || []);
+      if (techRes && techRes.technologies) setTechnologies(techRes.technologies || []);
     } catch (err) {
       console.error('Failed to load admin projects data:', err);
     } finally {
@@ -158,6 +171,9 @@ export const AdminProjects = () => {
   }, []);
 
   const openCreateModal = () => {
+    if (categories.length === 0) {
+      fetchData();
+    }
     setEditingId(null);
     setEditingProduct(null);
     setZipFile(null);
@@ -363,7 +379,7 @@ export const AdminProjects = () => {
                     <td className="px-5 py-3.5 font-bold">
                       <div className="flex items-center gap-3">
                         <img
-                          src={p.thumbnail || 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=200&q=80'}
+                          src={getFullImageUrl(p.thumbnail)}
                           alt={p.title}
                           className="w-10 h-10 rounded-lg object-cover shrink-0 border border-[#322659]"
                         />
@@ -752,7 +768,7 @@ export const AdminProjects = () => {
                     />
                     {formData.thumbnail && (
                       <div className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg overflow-hidden border border-[#322659]">
-                        <img src={formData.thumbnail} alt="Preview" className="w-full h-full object-cover" />
+                        <img src={getFullImageUrl(formData.thumbnail)} alt="Preview" className="w-full h-full object-cover" />
                       </div>
                     )}
                   </div>
