@@ -191,6 +191,11 @@ export const adminAPI = {
     apiRequest('/admin/upload/image', { method: 'POST', body: formData }),
   uploadProjectFile: (formData) =>
     apiRequest('/admin/upload/project-file', { method: 'POST', body: formData }),
+  importGithubRepo: (productId, githubUrl, backendGithubUrl = '', githubToken = '') =>
+    apiRequest('/admin/upload/github-link', {
+      method: 'POST',
+      body: JSON.stringify({ productId, githubUrl, backendGithubUrl, githubToken }),
+    }),
   rebuildPreview: (id) =>
     apiRequest(`/admin/products/${id}/preview/rebuild`, { method: 'POST' }),
   togglePreview: (id, enable) =>

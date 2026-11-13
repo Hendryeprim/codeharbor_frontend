@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { getFullPreviewUrl } from '../../services/api';
 import {
   X,
   ExternalLink,
@@ -19,7 +20,9 @@ export const LivePreviewModal = ({ isOpen, onClose, previewUrl, projectTitle }) 
   const [loading, setLoading] = useState(true);
   const [fullscreen, setFullscreen] = useState(false);
 
-  if (!isOpen || !previewUrl) return null;
+  const safePreviewUrl = getFullPreviewUrl(previewUrl);
+
+  if (!isOpen || !safePreviewUrl) return null;
 
   const getContainerWidth = () => {
     switch (device) {
@@ -124,7 +127,7 @@ export const LivePreviewModal = ({ isOpen, onClose, previewUrl, projectTitle }) 
               <RotateCcw className="w-3.5 h-3.5" />
             </button>
             <a
-              href={previewUrl}
+              href={safePreviewUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="px-2.5 py-1 rounded-lg bg-[#1C1636] hover:bg-[#322659] border border-[#322659] text-[11px] font-bold text-[#C084FC] flex items-center gap-1.5 transition"
@@ -161,7 +164,7 @@ export const LivePreviewModal = ({ isOpen, onClose, previewUrl, projectTitle }) 
           >
             <iframe
               key={iframeKey}
-              src={previewUrl}
+              src={safePreviewUrl}
               title={`Live Preview - ${projectTitle}`}
               onLoad={() => setLoading(false)}
               sandbox="allow-scripts allow-forms allow-same-origin allow-modals allow-downloads"
@@ -177,7 +180,7 @@ export const LivePreviewModal = ({ isOpen, onClose, previewUrl, projectTitle }) 
             <span>Isolated Sandbox Preview • Read-Only Session</span>
           </div>
           <span className="font-mono text-slate-500 truncate max-w-sm hidden sm:inline">
-            {previewUrl}
+            {safePreviewUrl}
           </span>
         </div>
       </div>

@@ -189,12 +189,12 @@ export const HarborAICopilot = () => {
 
                     <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#322659]/60 text-[11px]">
                       <div>
-                        <span className="text-slate-400">Target Domain:</span>{' '}
+                        <span className="text-slate-400">Category:</span>{' '}
                         <span className="font-semibold text-white">{response.aiInsight?.detectedDomain}</span>
                       </div>
                       <div>
-                        <span className="text-slate-400">Security Layer:</span>{' '}
-                        <span className="font-semibold text-[#A855F7]">Zero-Trust RBAC</span>
+                        <span className="text-slate-400">Quality:</span>{' '}
+                        <span className="font-semibold text-[#A855F7]">Verified Codebase</span>
                       </div>
                     </div>
                   </div>
@@ -203,7 +203,7 @@ export const HarborAICopilot = () => {
                   <div>
                     <h4 className="text-xs font-bold uppercase tracking-wider text-[#C0C7D1] mb-3 flex items-center gap-2">
                       <Layers className="w-3.5 h-3.5 text-[#A855F7]" />
-                      <span>Matched Codebase Repositories ({response.matches?.length})</span>
+                      <span>Matched Projects ({response.matches?.length})</span>
                     </h4>
 
                     <div className="space-y-3">

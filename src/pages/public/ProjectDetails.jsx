@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { publicAPI, customerAPI, getFullImageUrl } from '../../services/api';
+import { publicAPI, customerAPI, getFullImageUrl, getFullPreviewUrl } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { ComingSoonBadge, FreeBadge, ProductTypeBadge } from '../../components/common/Badge';
 import { ComingSoonModal } from '../../components/common/ComingSoonModal';
@@ -261,7 +261,7 @@ export const ProjectDetails = () => {
                     <RotateCcw className="w-3.5 h-3.5" />
                   </button>
                   <a
-                    href={product.previewUrl}
+                    href={getFullPreviewUrl(product.previewUrl)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="p-1.5 rounded-lg hover:bg-[#1C1636] text-slate-400 hover:text-[#C084FC] transition cursor-pointer"
@@ -293,7 +293,7 @@ export const ProjectDetails = () => {
                 >
                   <iframe
                     key={inlineIframeKey}
-                    src={product.previewUrl}
+                    src={getFullPreviewUrl(product.previewUrl)}
                     title={`${product.title} Live Template Sandbox`}
                     className="w-full h-full border-0 bg-white"
                     sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
@@ -538,13 +538,15 @@ export const ProjectDetails = () => {
                 )}
 
                 {/* Notice below paid buttons */}
-                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-[11px] text-amber-300 flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-amber-400" />
-                    <span>⚡ Online Purchasing: Coming Soon</span>
+                {!product.isFree && Number(product.price || 0) > 0 && (
+                  <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-[11px] text-amber-300 flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-amber-400" />
+                      <span>Online payments coming soon</span>
+                    </div>
+                    <span className="text-slate-400 text-[10px]">Contact support to purchase</span>
                   </div>
-                  <span className="text-slate-400 text-[10px] font-mono">Payment gateway in setup</span>
-                </div>
+                )}
               </div>
             )}
 

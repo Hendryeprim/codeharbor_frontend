@@ -22,6 +22,7 @@ import {
   FileText,
   Play,
   ExternalLink,
+  GitBranch,
 } from 'lucide-react';
 
 export const AdminProjects = () => {
@@ -38,13 +39,53 @@ export const AdminProjects = () => {
   const [submitting, setSubmitting] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [zipFile, setZipFile] = useState(null);
+  const [sourceMode, setSourceMode] = useState('github');
+  const [githubUrl, setGithubUrl] = useState('');
+  const [initialGithubUrl, setInitialGithubUrl] = useState('');
+  const [backendGithubUrl, setBackendGithubUrl] = useState('');
+  const [initialBackendGithubUrl, setInitialBackendGithubUrl] = useState('');
+  const [githubToken, setGithubToken] = useState('');
   const [activePreview, setActivePreview] = useState(null);
   const [logsModal, setLogsModal] = useState(null);
   const [directUploadingId, setDirectUploadingId] = useState(null);
   const [targetProductIdForZip, setTargetProductIdForZip] = useState(null);
+  const [pageNotification, setPageNotification] = useState(null);
+  const [modalNotification, setModalNotification] = useState(null);
+  const [syncingGithub, setSyncingGithub] = useState(false);
   const imageInputRef = useRef(null);
   const zipInputRef = useRef(null);
   const directZipInputRef = useRef(null);
+
+  const showPageMessage = (message, type = 'success') => {
+    setPageNotification({ type, message });
+    setTimeout(() => {
+      setPageNotification((prev) => (prev?.message === message ? null : prev));
+    }, 6000);
+  };
+
+  const showModalMessage = (message, type = 'error') => {
+    setModalNotification({ type, message });
+  };
+
+  const handleSyncGithubNow = async () => {
+    if (!editingId || !githubUrl.trim()) return;
+    setSyncingGithub(true);
+    setModalNotification(null);
+    try {
+      const res = await adminAPI.importGithubRepo(
+        editingId,
+        githubUrl.trim(),
+        backendGithubUrl.trim(),
+        githubToken.trim()
+      );
+      showModalMessage(res.message || 'GitHub repository re-synced and live preview built successfully!', 'success');
+      fetchData();
+    } catch (err) {
+      showModalMessage('Failed to sync GitHub: ' + err.message, 'error');
+    } finally {
+      setSyncingGithub(false);
+    }
+  };
 
   const openDirectZipUpload = (productId) => {
     setTargetProductIdForZip(productId);
@@ -62,10 +103,10 @@ export const AdminProjects = () => {
       zipFd.append('productId', targetProductIdForZip);
       zipFd.append('version', '1.0.0');
       const res = await adminAPI.uploadProjectFile(zipFd);
-      alert(res.message || 'ZIP archive uploaded! Live preview is being built.');
+      showPageMessage(res.message || 'ZIP archive uploaded! Live preview is being built.', 'success');
       fetchData();
     } catch (err) {
-      alert('Upload failed: ' + err.message);
+      showPageMessage('Upload failed: ' + err.message, 'error');
     } finally {
       setDirectUploadingId(null);
       setTargetProductIdForZip(null);
@@ -76,10 +117,10 @@ export const AdminProjects = () => {
   const handleRebuildPreview = async (id) => {
     try {
       const res = await adminAPI.rebuildPreview(id);
-      alert(res.message || 'Rebuild started.');
+      showPageMessage(res.message || 'Rebuild started.', 'success');
       fetchData();
     } catch (err) {
-      alert('Rebuild failed: ' + err.message);
+      showPageMessage('Rebuild failed: ' + err.message, 'error');
     }
   };
 
@@ -87,9 +128,10 @@ export const AdminProjects = () => {
     try {
       const enable = currentStatus === 'DISABLED';
       await adminAPI.togglePreview(id, enable);
+      showPageMessage(enable ? 'Preview enabled.' : 'Preview disabled.', 'success');
       fetchData();
     } catch (err) {
-      alert('Toggle failed: ' + err.message);
+      showPageMessage('Toggle failed: ' + err.message, 'error');
     }
   };
 
@@ -97,15 +139,17 @@ export const AdminProjects = () => {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploadingImage(true);
+    setModalNotification(null);
     try {
       const fd = new FormData();
       fd.append('image', file);
       const res = await adminAPI.uploadImage(fd);
       if (res.success && res.url) {
         setFormData((prev) => ({ ...prev, thumbnail: res.url }));
+        showModalMessage('Image uploaded successfully!', 'success');
       }
     } catch (err) {
-      alert('Failed to upload image: ' + err.message);
+      showModalMessage('Failed to upload image: ' + err.message, 'error');
     } finally {
       setUploadingImage(false);
     }
@@ -174,9 +218,16 @@ export const AdminProjects = () => {
     if (categories.length === 0) {
       fetchData();
     }
+    setModalNotification(null);
     setEditingId(null);
     setEditingProduct(null);
     setZipFile(null);
+    setSourceMode('github');
+    setGithubUrl('');
+    setInitialGithubUrl('');
+    setBackendGithubUrl('');
+    setInitialBackendGithubUrl('');
+    setGithubToken('');
     setFormData({
       title: '',
       shortDescription: '',
@@ -186,7 +237,7 @@ export const AdminProjects = () => {
       demoUrl: '',
       productType: 'FULL_APPLICATION',
       price: 0,
-      isFree: false,
+      isFree: true,
       viewPrice: 0,
       isViewFree: true,
       isFeatured: false,
@@ -195,16 +246,30 @@ export const AdminProjects = () => {
       supportInformation: '6 months technical bug assistance included',
       installationRequirements: 'Node.js 18+, PostgreSQL 14+, npm or yarn package manager',
       deliverables: 'Full Source Code (Frontend & Backend), Database Schemas, Documentation PDF',
-      downloadAllowed: false,
+      downloadAllowed: true,
       technologyIds: [],
     });
     setModalOpen(true);
   };
 
   const openEditModal = (p) => {
+    setModalNotification(null);
     setEditingId(p.id);
     setEditingProduct(p);
     setZipFile(null);
+    const existingFile = p.files?.[0];
+    const isGithubFile = existingFile?.fileType === 'application/vnd.github+zip';
+    const [feSpec = '', beSpec = ''] = isGithubFile && existingFile?.filename
+      ? existingFile.filename.split(' + ').map((s) => s.trim())
+      : [];
+    const existingGithubUrl = feSpec ? `https://github.com/${feSpec.replace('@', '/tree/')}` : '';
+    const existingBackendUrl = beSpec ? `https://github.com/${beSpec.replace('@', '/tree/')}` : '';
+    setSourceMode(isGithubFile || !existingFile ? 'github' : 'zip');
+    setGithubUrl(existingGithubUrl);
+    setInitialGithubUrl(existingGithubUrl);
+    setBackendGithubUrl(existingBackendUrl);
+    setInitialBackendGithubUrl(existingBackendUrl);
+    setGithubToken('');
     setFormData({
       title: p.title || '',
       shortDescription: p.shortDescription || '',
@@ -245,23 +310,40 @@ export const AdminProjects = () => {
         savedProduct = await adminAPI.createProduct(formData);
       }
 
-      // If a ZIP archive was attached, upload it
-      if (zipFile) {
-        const prodId = editingId || savedProduct?.product?.id;
-        if (prodId) {
-          const zipFd = new FormData();
-          zipFd.append('file', zipFile);
-          zipFd.append('productId', prodId);
-          zipFd.append('version', '1.0.0');
-          await adminAPI.uploadProjectFile(zipFd);
-        }
+      const prodId = editingId || savedProduct?.product?.id;
+
+      const githubChanged =
+        githubUrl.trim() !== initialGithubUrl ||
+        backendGithubUrl.trim() !== initialBackendGithubUrl ||
+        Boolean(githubToken.trim());
+
+      // Import from GitHub link (zero source storage) OR upload ZIP
+      if (prodId && sourceMode === 'github' && githubUrl.trim() && githubChanged) {
+        await adminAPI.importGithubRepo(
+          prodId,
+          githubUrl.trim(),
+          backendGithubUrl.trim(),
+          githubToken.trim()
+        );
+      } else if (prodId && sourceMode === 'zip' && zipFile) {
+        const zipFd = new FormData();
+        zipFd.append('file', zipFile);
+        zipFd.append('productId', prodId);
+        zipFd.append('version', '1.0.0');
+        await adminAPI.uploadProjectFile(zipFd);
       }
 
       setZipFile(null);
+      setGithubUrl('');
+      setInitialGithubUrl('');
+      setBackendGithubUrl('');
+      setInitialBackendGithubUrl('');
+      setGithubToken('');
       setModalOpen(false);
+      showPageMessage(editingId ? 'Project updated successfully!' : 'Project created successfully!', 'success');
       fetchData();
     } catch (err) {
-      alert(err.message || 'Operation failed');
+      showModalMessage(err.message || 'Operation failed', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -271,18 +353,20 @@ export const AdminProjects = () => {
     if (!window.confirm(`Are you sure you want to delete "${title}"?`)) return;
     try {
       await adminAPI.deleteProduct(id);
+      showPageMessage('Product deleted successfully.', 'success');
       fetchData();
     } catch (err) {
-      alert(err.message || 'Failed to delete product');
+      showPageMessage(err.message || 'Failed to delete product', 'error');
     }
   };
 
   const toggleFeatured = async (p) => {
     try {
       await adminAPI.updateProduct(p.id, { isFeatured: !p.isFeatured });
+      showPageMessage(`Project "${p.title}" ${!p.isFeatured ? 'marked as featured' : 'unmarked from featured'}.`, 'success');
       fetchData();
     } catch (err) {
-      alert(err.message);
+      showPageMessage(err.message || 'Failed to toggle featured status', 'error');
     }
   };
 
@@ -290,9 +374,10 @@ export const AdminProjects = () => {
     const nextStatus = p.status === 'PUBLISHED' ? 'DRAFT' : 'PUBLISHED';
     try {
       await adminAPI.updateProduct(p.id, { status: nextStatus });
+      showPageMessage(`Project status updated to ${nextStatus}.`, 'success');
       fetchData();
     } catch (err) {
-      alert(err.message);
+      showPageMessage(err.message || 'Failed to toggle status', 'error');
     }
   };
 
@@ -352,6 +437,26 @@ export const AdminProjects = () => {
           className="w-full pl-9 pr-3 py-2 rounded-xl border border-[#322659]/80 bg-[#0E0A1C] text-[#E2E8F0] placeholder-slate-500 text-xs focus:outline-none focus:border-[#A855F7] focus:ring-1 focus:ring-[#A855F7]"
         />
       </div>
+
+      {/* Page Notification Banner */}
+      {pageNotification && (
+        <div
+          className={`p-3.5 rounded-xl text-xs flex items-center justify-between border animate-fadeIn ${
+            pageNotification.type === 'error'
+              ? 'bg-rose-500/15 border-rose-500/40 text-rose-200'
+              : 'bg-emerald-500/15 border-emerald-500/40 text-emerald-200'
+          }`}
+        >
+          <span className="font-medium">{pageNotification.message}</span>
+          <button
+            type="button"
+            onClick={() => setPageNotification(null)}
+            className="ml-3 text-slate-400 hover:text-white transition"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* Projects Table */}
       {loading ? (
@@ -432,7 +537,7 @@ export const AdminProjects = () => {
                           </span>
                         ) : (
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="text-[11px] text-slate-500 font-mono">No ZIP</span>
+                            <span className="text-[11px] text-slate-500 font-mono">No Source</span>
                             <button
                               onClick={() => openDirectZipUpload(p.id)}
                               disabled={directUploadingId === p.id}
@@ -550,27 +655,46 @@ export const AdminProjects = () => {
           <div className="bg-gradient-to-b from-[#140F28] to-[#0A0713] rounded-2xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-[#322659] my-8 relative">
             <div className="flex items-center justify-between pb-3 border-b border-[#322659]/60 mb-5">
               <h3 className="text-lg font-bold text-[#E2E8F0]">
-                {editingId ? 'Edit Project Specifications' : 'Add New Project'}
+                {editingId ? 'Edit Project' : 'Add New Project'}
               </h3>
               <button onClick={() => setModalOpen(false)} className="text-slate-400 hover:text-white">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
+            {modalNotification && (
+              <div
+                className={`p-3 rounded-xl mb-4 text-xs flex items-center justify-between border animate-fadeIn ${
+                  modalNotification.type === 'error'
+                    ? 'bg-rose-500/15 border-rose-500/40 text-rose-200'
+                    : 'bg-emerald-500/15 border-emerald-500/40 text-emerald-200'
+                }`}
+              >
+                <span className="font-medium">{modalNotification.message}</span>
+                <button
+                  type="button"
+                  onClick={() => setModalNotification(null)}
+                  className="ml-3 text-slate-400 hover:text-white transition"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-4 max-h-[75vh] overflow-y-auto pr-2 text-xs">
               <div>
-                <label className="block font-semibold text-[#C0C7D1] mb-1">Project Title *</label>
+                <label className="block font-semibold text-[#C0C7D1] mb-1">Project Name *</label>
                 <input
                   type="text"
                   required
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  placeholder="e.g. HarborERP – Multi-Branch Supply Suite"
+                  placeholder="e.g. HarborERP Billing Suite"
                   className="w-full px-3 py-2 rounded-xl border border-[#322659]/80 bg-[#0E0A1C] text-[#E2E8F0] text-xs focus:outline-none focus:border-[#A855F7]"
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block font-semibold text-[#C0C7D1] mb-1">Category *</label>
                   <select
@@ -589,37 +713,49 @@ export const AdminProjects = () => {
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-[#C0C7D1] mb-1">Product Type *</label>
+                  <label className="block font-semibold text-[#C0C7D1] mb-1">Type</label>
                   <select
                     value={formData.productType}
                     onChange={(e) => setFormData({ ...formData, productType: e.target.value })}
                     className="w-full px-3 py-2 rounded-xl border border-[#322659]/80 text-xs focus:outline-none focus:border-[#A855F7] bg-[#0E0A1C] text-[#E2E8F0]"
                   >
                     <option value="FULL_APPLICATION">Full Application</option>
-                    <option value="TEMPLATE">Template / Boilerplate</option>
+                    <option value="TEMPLATE">Template / UI</option>
                     <option value="RESOURCE">Resource / Toolkit</option>
                     <option value="PLUGIN">Plugin / Module</option>
                   </select>
                 </div>
+
+                <div>
+                  <label className="block font-semibold text-[#C0C7D1] mb-1">Status</label>
+                  <select
+                    value={formData.status}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-[#322659]/80 text-xs focus:outline-none focus:border-[#A855F7] bg-[#0E0A1C] text-[#E2E8F0]"
+                  >
+                    <option value="PUBLISHED">Published</option>
+                    <option value="DRAFT">Draft</option>
+                    <option value="COMING_SOON">Coming Soon</option>
+                  </select>
+                </div>
               </div>
 
-              {/* DUAL PRICING CONFIGURATION (VIEW PRICE & DOWNLOAD PRICE) */}
+              {/* Simple Pricing & Access */}
               <div className="p-4 bg-[#0A0713]/90 rounded-2xl border border-[#A855F7]/30 space-y-3">
                 <div className="flex items-center justify-between border-b border-[#322659]/60 pb-2">
-                  <span className="font-bold text-xs uppercase tracking-wider text-[#C084FC] flex items-center gap-1.5">
+                  <span className="font-bold text-xs text-[#C084FC] flex items-center gap-1.5">
                     <Zap className="w-3.5 h-3.5" />
-                    Dual Pricing Structure (View Access vs. Download Access)
+                    Pricing &amp; Access
                   </span>
-                  <span className="text-[10px] text-slate-400 font-mono">Independent Pricing Tiers</span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Tier 1: View / Live Preview Access */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Live Preview Price */}
                   <div className="p-3 rounded-xl bg-[#0E0A1C] border border-[#322659] space-y-2">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-2">
                       <label className="text-xs font-bold text-white flex items-center gap-1.5">
                         <Eye className="w-3.5 h-3.5 text-[#A855F7]" />
-                        <span>Live Preview / View Price (₹)</span>
+                        <span>Preview Price (₹)</span>
                       </label>
                       <label className="flex items-center gap-1.5 text-[11px] font-semibold text-[#C084FC] cursor-pointer">
                         <input
@@ -634,33 +770,30 @@ export const AdminProjects = () => {
                           }
                           className="rounded text-[#C084FC] w-3.5 h-3.5 bg-[#0A0713] border-[#322659]"
                         />
-                        <span>Free to View</span>
+                        <span>Free</span>
                       </label>
                     </div>
-                    <div>
-                      <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-mono text-xs">₹</span>
-                        <input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          value={formData.viewPrice}
-                          onChange={(e) => setFormData({ ...formData, viewPrice: e.target.value })}
-                          disabled={formData.isViewFree}
-                          placeholder="0.00"
-                          className="w-full pl-7 pr-3 py-1.5 rounded-lg border border-[#322659] bg-[#0A0713] text-[#E2E8F0] font-mono text-xs disabled:opacity-40 focus:outline-none focus:border-[#A855F7]"
-                        />
-                      </div>
-                      <p className="text-[10px] text-slate-400 mt-1">Amount charged to launch or explore the live interactive preview.</p>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-mono text-xs">₹</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={formData.viewPrice}
+                        onChange={(e) => setFormData({ ...formData, viewPrice: e.target.value })}
+                        disabled={formData.isViewFree}
+                        placeholder="0.00"
+                        className="w-full pl-7 pr-3 py-1.5 rounded-lg border border-[#322659] bg-[#0A0713] text-[#E2E8F0] font-mono text-xs disabled:opacity-40 focus:outline-none focus:border-[#A855F7]"
+                      />
                     </div>
                   </div>
 
-                  {/* Tier 2: Full Source Code Download / Purchase */}
+                  {/* Download Price */}
                   <div className="p-3 rounded-xl bg-[#0E0A1C] border border-[#322659] space-y-2">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-2">
                       <label className="text-xs font-bold text-white flex items-center gap-1.5">
                         <Upload className="w-3.5 h-3.5 text-[#C084FC]" />
-                        <span>Source Code Download Price (₹)</span>
+                        <span>Download Price (₹)</span>
                       </label>
                       <label className="flex items-center gap-1.5 text-[11px] font-semibold text-[#C084FC] cursor-pointer">
                         <input
@@ -675,24 +808,21 @@ export const AdminProjects = () => {
                           }
                           className="rounded text-[#C084FC] w-3.5 h-3.5 bg-[#0A0713] border-[#322659]"
                         />
-                        <span>Free Download</span>
+                        <span>Free</span>
                       </label>
                     </div>
-                    <div>
-                      <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-mono text-xs">₹</span>
-                        <input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          value={formData.price}
-                          onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                          disabled={formData.isFree}
-                          placeholder="0.00"
-                          className="w-full pl-7 pr-3 py-1.5 rounded-lg border border-[#322659] bg-[#0A0713] text-[#E2E8F0] font-mono text-xs disabled:opacity-40 focus:outline-none focus:border-[#C084FC]"
-                        />
-                      </div>
-                      <p className="text-[10px] text-slate-400 mt-1">Amount charged to download the full ZIP source codebase.</p>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-mono text-xs">₹</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={formData.price}
+                        onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                        disabled={formData.isFree}
+                        placeholder="0.00"
+                        className="w-full pl-7 pr-3 py-1.5 rounded-lg border border-[#322659] bg-[#0A0713] text-[#E2E8F0] font-mono text-xs disabled:opacity-40 focus:outline-none focus:border-[#C084FC]"
+                      />
                     </div>
                   </div>
                 </div>
@@ -706,49 +836,48 @@ export const AdminProjects = () => {
                       onChange={(e) => setFormData({ ...formData, downloadAllowed: e.target.checked })}
                       className="rounded text-[#A855F7] w-4 h-4 bg-[#0E0A1C] border-[#322659]"
                     />
-                    <span className="font-semibold">Allow Verified ZIP Download Access</span>
+                    <span className="font-semibold">Allow ZIP Download</span>
                   </label>
                 </div>
               </div>
 
               <div>
-                <label className="block font-semibold text-[#C0C7D1] mb-1">Short Summary *</label>
+                <label className="block font-semibold text-[#C0C7D1] mb-1">Short Description *</label>
                 <input
                   type="text"
                   required
                   value={formData.shortDescription}
                   onChange={(e) => setFormData({ ...formData, shortDescription: e.target.value })}
-                  placeholder="One sentence overview for card listings..."
+                  placeholder="Brief 1-line summary of the project..."
                   className="w-full px-3 py-2 rounded-xl border border-[#322659]/80 bg-[#0E0A1C] text-[#E2E8F0] text-xs focus:outline-none focus:border-[#A855F7]"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-[#C0C7D1] mb-1">Full Technical Description *</label>
+                <label className="block font-semibold text-[#C0C7D1] mb-1">Full Description *</label>
                 <textarea
-                  rows={4}
+                  rows={3}
                   required
                   value={formData.fullDescription}
                   onChange={(e) => setFormData({ ...formData, fullDescription: e.target.value })}
-                  placeholder="Comprehensive architecture overview, database structures, features..."
+                  placeholder="Features, setup details, and overview..."
                   className="w-full px-3 py-2 rounded-xl border border-[#322659]/80 bg-[#0E0A1C] text-[#E2E8F0] text-xs focus:outline-none focus:border-[#A855F7]"
                 />
               </div>
 
-              {/* Thumbnail and Demo URL section */}
+              {/* Cover Image & Demo URL */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Thumbnail with Direct File Upload */}
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label className="block font-semibold text-[#C0C7D1]">Thumbnail / Screenshot</label>
+                    <label className="block font-semibold text-[#C0C7D1]">Cover Image</label>
                     <button
                       type="button"
                       onClick={() => imageInputRef.current?.click()}
                       disabled={uploadingImage}
-                      className="text-[10px] text-[#C084FC] hover:underline flex items-center gap-1 font-mono font-bold"
+                      className="text-[11px] text-[#C084FC] hover:underline flex items-center gap-1 font-bold"
                     >
                       <Upload className="w-3 h-3" />
-                      <span>{uploadingImage ? 'Uploading...' : 'Upload File'}</span>
+                      <span>{uploadingImage ? 'Uploading...' : 'Upload Image'}</span>
                     </button>
                   </div>
                   <input
@@ -763,7 +892,7 @@ export const AdminProjects = () => {
                       type="text"
                       value={formData.thumbnail}
                       onChange={(e) => setFormData({ ...formData, thumbnail: e.target.value })}
-                      placeholder="Paste image URL or click 'Upload File' above"
+                      placeholder="Upload file or paste image URL"
                       className="w-full px-3 py-2 pr-12 rounded-xl border border-[#322659]/80 bg-[#0E0A1C] text-[#E2E8F0] text-xs focus:outline-none focus:border-[#A855F7]"
                     />
                     {formData.thumbnail && (
@@ -772,116 +901,182 @@ export const AdminProjects = () => {
                       </div>
                     )}
                   </div>
-                  <div className="flex items-center gap-1.5 mt-1.5 text-[10px] text-slate-400">
-                    <span>Quick covers:</span>
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, thumbnail: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=80' })}
-                      className="text-[#A855F7] hover:underline"
-                    >Code</button>
-                    <span>•</span>
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, thumbnail: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80' })}
-                      className="text-[#A855F7] hover:underline"
-                    >SaaS</button>
-                    <span>•</span>
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, thumbnail: 'https://images.unsplash.com/photo-1556742049-0a67c5574f73?auto=format&fit=crop&w=800&q=80' })}
-                      className="text-[#A855F7] hover:underline"
-                    >E-Com</button>
-                    <span>•</span>
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, thumbnail: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80' })}
-                      className="text-[#A855F7] hover:underline"
-                    >Billing</button>
-                  </div>
                 </div>
 
-                {/* Live Demo URL / Video Demo (Optional) */}
                 <div>
                   <label className="block font-semibold text-[#C0C7D1] mb-1">
-                    Live Demo / Video URL <span className="text-[10px] text-slate-400 font-normal">(Optional)</span>
+                    Demo / Video Link <span className="text-[10px] text-slate-400 font-normal">(Optional)</span>
                   </label>
                   <input
                     type="url"
                     value={formData.demoUrl}
                     onChange={(e) => setFormData({ ...formData, demoUrl: e.target.value })}
-                    placeholder="https://... (Optional: Live site, YouTube, Loom, or Drive video)"
+                    placeholder="https://..."
                     className="w-full px-3 py-2 rounded-xl border border-[#322659]/80 bg-[#0E0A1C] text-[#E2E8F0] text-xs focus:outline-none focus:border-[#A855F7]"
                   />
-                  <p className="text-[10px] text-slate-400 mt-1">
-                    No live website? Leave empty or paste a 1-minute YouTube screen recording link.
-                  </p>
                 </div>
               </div>
 
-              {/* Attach Source Code ZIP Archive & Automatic Live Preview */}
-              <div className="p-4 rounded-2xl bg-gradient-to-r from-[#0A0713] to-[#140F28] border border-[#C084FC]/30 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-xs font-bold text-white">
-                    <Zap className="w-4 h-4 text-[#C084FC]" />
-                    <span>Project ZIP Archive & Automated Live Preview</span>
-                  </div>
-                  <span className="text-[10px] font-mono text-[#C084FC] bg-[#C084FC]/10 px-2 py-0.5 rounded border border-[#C084FC]/30">
-                    Auto-Build Sandbox
+              {/* Project Source: GitHub Link (Zero Storage) or ZIP Upload */}
+              <div className="p-4 rounded-2xl bg-[#0A0713] border border-[#C084FC]/30 space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-xs font-bold text-white flex items-center gap-2">
+                    {sourceMode === 'github' ? (
+                      <GitBranch className="w-4 h-4 text-[#C084FC]" />
+                    ) : (
+                      <FileArchive className="w-4 h-4 text-[#C084FC]" />
+                    )}
+                    Project Source &amp; Preview
                   </span>
+
+                  <div className="flex items-center gap-1 bg-[#140F28] p-1 rounded-xl border border-[#322659]">
+                    <button
+                      type="button"
+                      onClick={() => setSourceMode('github')}
+                      className={`px-3 py-1 rounded-lg text-[11px] font-bold transition flex items-center gap-1.5 ${
+                        sourceMode === 'github'
+                          ? 'bg-[#A855F7] text-white'
+                          : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      <GitBranch className="w-3 h-3" />
+                      GitHub Link (No Storage)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSourceMode('zip')}
+                      className={`px-3 py-1 rounded-lg text-[11px] font-bold transition flex items-center gap-1.5 ${
+                        sourceMode === 'zip'
+                          ? 'bg-[#A855F7] text-white'
+                          : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      <Upload className="w-3 h-3" />
+                      Upload ZIP
+                    </button>
+                  </div>
                 </div>
 
                 {editingProduct?.files && editingProduct.files.length > 0 && (
-                  <div className="p-2.5 rounded-xl bg-[#A855F7]/10 border border-[#A855F7]/30 text-xs text-[#A855F7] flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <FileArchive className="w-4 h-4 text-[#C084FC]" />
-                      <span>
-                        Currently Attached: <strong>{editingProduct.files[0].originalName}</strong> ({(editingProduct.files[0].fileSize / (1024 * 1024)).toFixed(2)} MB)
-                      </span>
-                    </div>
-                    <span className="text-[10px] font-mono text-[#C084FC] bg-[#C084FC]/15 px-2 py-0.5 rounded border border-[#C084FC]/30">
-                      Status: {editingProduct.previewStatus}
+                  <div className="p-2.5 rounded-xl bg-[#A855F7]/10 border border-[#A855F7]/30 text-xs text-[#A855F7] flex items-center justify-between flex-wrap gap-2">
+                    <span>
+                      Current Source:{' '}
+                      <strong>
+                        {editingProduct.files[0].fileType === 'application/vnd.github+zip'
+                          ? `GitHub (${editingProduct.files[0].filename})`
+                          : editingProduct.files[0].originalName}
+                      </strong>{' '}
+                      ({(editingProduct.files[0].fileSize / (1024 * 1024)).toFixed(2)} MB)
+                    </span>
+                    <span className="text-[10px] font-bold text-emerald-400">
+                      {editingProduct.previewStatus}
                     </span>
                   </div>
                 )}
 
-                <p className="text-[11px] text-[#C0C7D1] leading-relaxed">
-                  Upload your project source code as a <code className="text-[#C084FC] font-mono">.zip</code> archive. CoderHarbor will automatically detect the architecture (Static HTML, React/Vite, or Fullstack), run an isolated build, and launch a working <strong>Live Preview</strong> for customers!
-                </p>
+                {sourceMode === 'github' ? (
+                  <div className="space-y-2.5">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-[#C0C7D1] mb-1">
+                        Frontend / Main GitHub Link
+                      </label>
+                      <input
+                        type="url"
+                        value={githubUrl}
+                        onChange={(e) => setGithubUrl(e.target.value)}
+                        placeholder="https://github.com/username/frontend-repo (or single full project repo)"
+                        className="w-full px-3 py-2 rounded-xl border border-[#322659]/80 bg-[#0E0A1C] text-[#E2E8F0] text-xs focus:outline-none focus:border-[#A855F7]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-[#C0C7D1] mb-1">
+                        Backend GitHub Link <span className="text-[10px] text-slate-400 font-normal">(Optional — use if backend is in a separate repo)</span>
+                      </label>
+                      <input
+                        type="url"
+                        value={backendGithubUrl}
+                        onChange={(e) => setBackendGithubUrl(e.target.value)}
+                        placeholder="Leave blank if frontend & backend are in one repo"
+                        className="w-full px-3 py-2 rounded-xl border border-[#322659]/80 bg-[#0E0A1C] text-[#E2E8F0] text-xs focus:outline-none focus:border-[#A855F7]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-[#C0C7D1] mb-1">
+                        GitHub Token <span className="text-[10px] text-slate-400 font-normal">(Optional — needed only for Private repos)</span>
+                      </label>
+                      <input
+                        type="password"
+                        value={githubToken}
+                        onChange={(e) => setGithubToken(e.target.value)}
+                        placeholder="Leave blank for public repositories"
+                        className="w-full px-3 py-2 rounded-xl border border-[#322659]/80 bg-[#0E0A1C] text-[#E2E8F0] text-xs focus:outline-none focus:border-[#A855F7]"
+                      />
+                    </div>
+                    <p className="text-[11px] text-emerald-400/90">
+                      ✓ Paste 1 link if both folders are in one repo, or 2 separate links — builds live template preview &amp; downloads combined code with zero server ZIP storage.
+                    </p>
 
-                <input
-                  ref={zipInputRef}
-                  type="file"
-                  accept=".zip,.tar,.gz,.7z"
-                  onChange={(e) => setZipFile(e.target.files?.[0] || null)}
-                  className="hidden"
-                />
+                    {editingId && githubUrl.trim() && (
+                      <div className="pt-1">
+                        <button
+                          type="button"
+                          onClick={handleSyncGithubNow}
+                          disabled={syncingGithub}
+                          className="px-3 py-1.5 rounded-xl bg-[#A855F7]/15 hover:bg-[#A855F7]/25 border border-[#A855F7]/40 text-[#C084FC] hover:text-white text-[11px] font-bold flex items-center gap-1.5 transition cursor-pointer"
+                        >
+                          {syncingGithub ? (
+                            <>
+                              <Loader2 className="w-3.5 h-3.5 animate-spin text-[#A855F7]" />
+                              <span>Re-syncing &amp; Building Real Live Preview...</span>
+                            </>
+                          ) : (
+                            <>
+                              <RotateCcw className="w-3.5 h-3.5 text-[#C084FC]" />
+                              <span>Force Re-sync &amp; Rebuild Preview from GitHub</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <>
+                    <input
+                      ref={zipInputRef}
+                      type="file"
+                      accept=".zip,.tar,.gz,.7z,.rar"
+                      onChange={(e) => setZipFile(e.target.files?.[0] || null)}
+                      className="hidden"
+                    />
 
-                <div className="flex flex-wrap items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => zipInputRef.current?.click()}
-                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#A855F7]/20 to-[#C084FC]/20 border border-[#C084FC]/50 text-xs font-bold text-white hover:brightness-125 transition flex items-center gap-2 shadow-sm"
-                  >
-                    <Upload className="w-4 h-4 text-[#C084FC]" />
-                    <span>{zipFile ? 'Change ZIP File' : 'Choose Project .ZIP from Computer'}</span>
-                  </button>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => zipInputRef.current?.click()}
+                        className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#A855F7]/20 to-[#C084FC]/20 border border-[#C084FC]/50 text-xs font-bold text-white hover:brightness-125 transition flex items-center gap-2"
+                      >
+                        <Upload className="w-4 h-4 text-[#C084FC]" />
+                        <span>{zipFile ? 'Change ZIP File' : 'Upload .ZIP File'}</span>
+                      </button>
 
-                  {zipFile ? (
-                    <span className="text-xs text-[#C084FC] font-mono flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#C084FC]/10 border border-[#C084FC]/30">
-                      <Check className="w-4 h-4 text-[#C084FC]" />
-                      {zipFile.name} ({(zipFile.size / (1024 * 1024)).toFixed(2)} MB)
-                    </span>
-                  ) : (
-                    <span className="text-[11px] text-slate-400">
-                      No ZIP selected. (Upload will trigger automatic validation and deployment).
-                    </span>
-                  )}
-                </div>
+                      {zipFile ? (
+                        <span className="text-xs text-[#C084FC] font-mono flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#C084FC]/10 border border-[#C084FC]/30">
+                          <Check className="w-4 h-4 text-[#C084FC]" />
+                          {zipFile.name} ({(zipFile.size / (1024 * 1024)).toFixed(1)} MB)
+                        </span>
+                      ) : (
+                        <span className="text-[11px] text-slate-400">
+                          Accepts .zip, .rar, .7z, .tar.gz
+                        </span>
+                      )}
+                    </div>
+                  </>
+                )}
               </div>
 
-              {/* Technologies Checkboxes */}
+              {/* Technologies */}
               <div>
-                <label className="block font-semibold text-[#C0C7D1] mb-1.5">Technologies Used</label>
+                <label className="block font-semibold text-[#C0C7D1] mb-1.5">Technologies</label>
                 <div className="flex flex-wrap gap-1.5 p-3 bg-[#0A0713]/70 rounded-xl border border-[#322659]/60 max-h-28 overflow-y-auto">
                   {(technologies || []).map((t) => {
                     const isSelected = Array.isArray(formData.technologyIds) && formData.technologyIds.includes(t.id);
@@ -903,11 +1098,13 @@ export const AdminProjects = () => {
                 </div>
               </div>
 
-              {submitting && zipFile && (
+              {submitting && (sourceMode === 'github' ? githubUrl.trim() && (githubUrl.trim() !== initialGithubUrl || backendGithubUrl.trim() !== initialBackendGithubUrl || githubToken.trim()) : zipFile) && (
                 <div className="p-3 rounded-xl bg-[#A855F7]/10 border border-[#A855F7]/30 text-xs text-[#A855F7] flex items-center gap-2 animate-pulse">
                   <Loader2 className="w-4 h-4 animate-spin text-[#C084FC] shrink-0" />
                   <span>
-                    Uploading project archive ({(zipFile.size / (1024 * 1024)).toFixed(1)} MB) & launching live preview analysis... Please wait.
+                    {sourceMode === 'github'
+                      ? 'Fetching GitHub repository & building live template preview... Please wait.'
+                      : `Uploading project archive (${(zipFile.size / (1024 * 1024)).toFixed(1)} MB) & building preview... Please wait.`}
                   </span>
                 </div>
               )}
@@ -929,7 +1126,9 @@ export const AdminProjects = () => {
                   {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
                   <span>
                     {submitting
-                      ? zipFile
+                      ? sourceMode === 'github' && githubUrl.trim() && (githubUrl.trim() !== initialGithubUrl || backendGithubUrl.trim() !== initialBackendGithubUrl || githubToken.trim())
+                        ? 'Importing GitHub & Building...'
+                        : zipFile
                         ? 'Uploading & Building...'
                         : 'Saving...'
                       : editingId
