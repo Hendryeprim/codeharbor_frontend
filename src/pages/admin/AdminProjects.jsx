@@ -317,8 +317,14 @@ export const AdminProjects = () => {
         backendGithubUrl.trim() !== initialBackendGithubUrl ||
         Boolean(githubToken.trim());
 
+      const shouldImportGithub =
+        prodId &&
+        sourceMode === 'github' &&
+        githubUrl.trim() &&
+        (githubChanged || !editingId || editingProduct?.previewStatus !== 'READY');
+
       // Import from GitHub link (zero source storage) OR upload ZIP
-      if (prodId && sourceMode === 'github' && githubUrl.trim() && githubChanged) {
+      if (shouldImportGithub) {
         await adminAPI.importGithubRepo(
           prodId,
           githubUrl.trim(),

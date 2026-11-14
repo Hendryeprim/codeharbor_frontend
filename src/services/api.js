@@ -26,6 +26,17 @@ export const getFullImageUrl = (url) => {
   return `${apiBase}${cleanPath}`;
 };
 
+export const getFullPreviewUrl = (url) => {
+  if (!url || typeof url !== 'string') return '';
+  // If running on live domain (coderharbor.com), rewrite any localhost preview URLs to https://api.coderharbor.com
+  if (typeof window !== 'undefined' && window.location.hostname && !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1')) {
+    if (url.includes('localhost') || url.includes('127.0.0.1')) {
+      return url.replace(/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?/, 'https://api.coderharbor.com');
+    }
+  }
+  return url;
+};
+
 export const getAuthToken = () => localStorage.getItem('coderharbor_token');
 export const setAuthToken = (token) => {
   if (token) localStorage.setItem('coderharbor_token', token);
