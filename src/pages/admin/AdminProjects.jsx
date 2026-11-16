@@ -218,7 +218,7 @@ export const AdminProjects = () => {
 
   // Auto-poll for status updates whenever any product is in BUILDING status
   useEffect(() => {
-    const hasBuilding = projects.some((p) => p.previewStatus === 'BUILDING');
+    const hasBuilding = products.some((p) => p.previewStatus === 'BUILDING');
     if (!hasBuilding) return;
 
     const interval = setInterval(async () => {
@@ -231,7 +231,7 @@ export const AdminProjects = () => {
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [projects]);
+  }, [products]);
 
   const openCreateModal = () => {
     if (categories.length === 0) {
