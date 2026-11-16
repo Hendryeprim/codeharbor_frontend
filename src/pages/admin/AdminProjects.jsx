@@ -31,6 +31,8 @@ export const AdminProjects = () => {
   const [technologies, setTechnologies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [deleteConfirm, setDeleteConfirm] = useState(null); // { id, title }
+  const [deleting, setDeleting] = useState(false);
 
   // Modal State
   const [modalOpen, setModalOpen] = useState(false);
@@ -355,14 +357,23 @@ export const AdminProjects = () => {
     }
   };
 
-  const handleDelete = async (id, title) => {
-    if (!window.confirm(`Are you sure you want to delete "${title}"?`)) return;
+  const handleDelete = (id, title) => {
+    setDeleteConfirm({ id, title });
+  };
+
+  const confirmDeleteNow = async () => {
+    if (!deleteConfirm) return;
+    setDeleting(true);
     try {
-      await adminAPI.deleteProduct(id);
-      showPageMessage('Product deleted successfully.', 'success');
+      await adminAPI.deleteProduct(deleteConfirm.id);
+      showPageMessage(`Project "${deleteConfirm.title}" deleted successfully.`, 'success');
+      setDeleteConfirm(null);
       fetchData();
     } catch (err) {
       showPageMessage(err.message || 'Failed to delete product', 'error');
+      setDeleteConfirm(null);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -1191,6 +1202,54 @@ export const AdminProjects = () => {
                 className="px-4 py-2 rounded-xl bg-[#1C1636] hover:bg-[#322659] text-white text-xs font-semibold transition"
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* In-Page Confirmation Modal for Deletion (No native browser popups) */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
+          <div className="bg-[#0E0A1C] border border-[#322659] rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
+            <div className="flex items-center gap-3 text-rose-400">
+              <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center shrink-0">
+                <Trash2 className="w-5 h-5 text-rose-400" />
+              </div>
+              <div>
+                <h3 className="font-bold text-white text-base">Delete Project</h3>
+                <p className="text-xs text-slate-400">This action cannot be undone.</p>
+              </div>
+            </div>
+            <p className="text-sm text-slate-300">
+              Are you sure you want to delete <span className="font-bold text-white font-mono bg-[#140F28] px-2 py-0.5 rounded border border-[#322659]">"{deleteConfirm.title}"</span>? All associated source files and live preview instances will be permanently removed.
+            </p>
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirm(null)}
+                disabled={deleting}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white bg-[#140F28] hover:bg-[#1C1636] border border-[#322659] transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDeleteNow}
+                disabled={deleting}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-500 transition flex items-center gap-1.5 shadow-lg shadow-rose-950/40 cursor-pointer"
+              >
+                {deleting ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Delete Permanently</span>
+                  </>
+                )}
               </button>
             </div>
           </div>

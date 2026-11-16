@@ -1,12 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { adminAPI } from '../../services/api';
-import { Cpu, Plus, Trash2, Loader2, Zap } from 'lucide-react';
+import { Cpu, Plus, Trash2, Loader2, Zap, X } from 'lucide-react';
 
 export const AdminTechnologies = () => {
   const [technologies, setTechnologies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [newTechName, setNewTechName] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(null); // { id, name }
+  const [deleting, setDeleting] = useState(false);
+  const [notification, setNotification] = useState(null);
+
+  const showNotice = (message, type = 'success') => {
+    setNotification({ message, type });
+    setTimeout(() => {
+      setNotification((prev) => (prev?.message === message ? null : prev));
+    }, 5000);
+  };
 
   useEffect(() => {
     fetchTech();
@@ -32,26 +42,56 @@ export const AdminTechnologies = () => {
       setSubmitting(true);
       await adminAPI.createTechnology({ name: newTechName });
       setNewTechName('');
+      showNotice('Technology added successfully.', 'success');
       fetchTech();
     } catch (err) {
-      alert(err.message || 'Error creating technology');
+      showNotice(err.message || 'Error creating technology', 'error');
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleDelete = async (t) => {
-    if (!window.confirm(`Delete technology tag "${t.name}"?`)) return;
+  const handleDelete = (t) => {
+    setDeleteConfirm({ id: t.id, name: t.name });
+  };
+
+  const confirmDeleteNow = async () => {
+    if (!deleteConfirm) return;
+    setDeleting(true);
     try {
-      await adminAPI.deleteTechnology(t.id);
+      await adminAPI.deleteTechnology(deleteConfirm.id);
+      showNotice(`Technology "${deleteConfirm.name}" deleted successfully.`, 'success');
+      setDeleteConfirm(null);
       fetchTech();
     } catch (err) {
-      alert(err.message || 'Error deleting technology');
+      showNotice(err.message || 'Error deleting technology', 'error');
+      setDeleteConfirm(null);
+    } finally {
+      setDeleting(false);
     }
   };
 
   return (
     <div className="space-y-6">
+      {notification && (
+        <div
+          className={`p-3.5 rounded-2xl flex items-center justify-between text-xs font-medium border animate-fadeIn ${
+            notification.type === 'error'
+              ? 'bg-rose-500/10 border-rose-500/30 text-rose-300'
+              : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+          }`}
+        >
+          <span>{notification.message}</span>
+          <button
+            type="button"
+            onClick={() => setNotification(null)}
+            className="text-slate-400 hover:text-white"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       <div>
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#A855F7]/10 border border-[#A855F7]/30 text-[#A855F7] text-[11px] font-semibold tracking-wider uppercase mb-2">
           <Zap className="w-3.5 h-3.5 text-[#C084FC]" />
@@ -105,13 +145,61 @@ export const AdminTechnologies = () => {
               </div>
               <button
                 onClick={() => handleDelete(t)}
-                className="text-slate-500 hover:text-rose-400 p-1 rounded transition hover:bg-rose-500/10"
+                className="text-slate-500 hover:text-rose-400 p-1 rounded transition hover:bg-rose-500/10 cursor-pointer"
                 title="Delete"
               >
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* In-Page Confirmation Modal for Deletion (No native browser popups) */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
+          <div className="bg-[#0E0A1C] border border-[#322659] rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
+            <div className="flex items-center gap-3 text-rose-400">
+              <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center shrink-0">
+                <Trash2 className="w-5 h-5 text-rose-400" />
+              </div>
+              <div>
+                <h3 className="font-bold text-white text-base">Delete Technology Tag</h3>
+                <p className="text-xs text-slate-400">This action cannot be undone.</p>
+              </div>
+            </div>
+            <p className="text-sm text-slate-300">
+              Are you sure you want to delete <span className="font-bold text-white font-mono bg-[#140F28] px-2 py-0.5 rounded border border-[#322659]">"{deleteConfirm.name}"</span>?
+            </p>
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirm(null)}
+                disabled={deleting}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white bg-[#140F28] hover:bg-[#1C1636] border border-[#322659] transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDeleteNow}
+                disabled={deleting}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-500 transition flex items-center gap-1.5 shadow-lg shadow-rose-950/40 cursor-pointer"
+              >
+                {deleting ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Delete Tag</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
