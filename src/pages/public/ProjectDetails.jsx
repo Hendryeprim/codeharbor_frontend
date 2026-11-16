@@ -42,6 +42,7 @@ export const ProjectDetails = () => {
   const [error, setError] = useState(null);
   const [downloading, setDownloading] = useState(false);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
+  const [downloadError, setDownloadError] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [livePreviewOpen, setLivePreviewOpen] = useState(false);
   const [activeMediaTab, setActiveMediaTab] = useState('preview'); // 'preview' | 'gallery'
@@ -98,6 +99,7 @@ export const ProjectDetails = () => {
   }, [product?.previewStatus, slug]);
 
   const handleFreeDownload = async () => {
+    setDownloadError(null);
     if (!isAuthenticated) {
       navigate('/login', { state: { from: `/projects/${slug}` } });
       return;
@@ -105,7 +107,7 @@ export const ProjectDetails = () => {
 
     const downloadableFile = product?.files?.[0];
     if (!downloadableFile) {
-      alert('No archive file is associated with this project.');
+      setDownloadError('No source archive is currently attached to this project.');
       return;
     }
 
@@ -115,7 +117,7 @@ export const ProjectDetails = () => {
       setDownloadSuccess(true);
       setTimeout(() => setDownloadSuccess(false), 5000);
     } catch (err) {
-      alert(err.message || 'Error initiating download');
+      setDownloadError(err.message || 'Error initiating download. Please try again.');
     } finally {
       setDownloading(false);
     }
@@ -440,9 +442,15 @@ export const ProjectDetails = () => {
                       )}
                     </button>
                     {downloadSuccess && (
-                      <div className="p-3 bg-emerald-950/40 border border-emerald-800 rounded-xl text-xs text-[#C084FC] flex items-center gap-2 animate-fadeIn">
-                        <CheckCircle2 className="w-4 h-4 text-[#C084FC] shrink-0" />
+                      <div className="p-3 bg-emerald-950/40 border border-emerald-800 rounded-xl text-xs text-emerald-300 flex items-center gap-2 animate-fadeIn">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
                         <span>Download initiated successfully! Check browser downloads.</span>
+                      </div>
+                    )}
+                    {downloadError && (
+                      <div className="p-3 bg-rose-950/40 border border-rose-800 rounded-xl text-xs text-rose-300 flex items-center gap-2 animate-fadeIn">
+                        <X className="w-4 h-4 text-rose-400 shrink-0" />
+                        <span>{downloadError}</span>
                       </div>
                     )}
                     {!isAuthenticated && (
@@ -553,9 +561,15 @@ export const ProjectDetails = () => {
                 )}
 
                 {downloadSuccess && (
-                  <div className="p-3 bg-emerald-950/40 border border-emerald-800 rounded-xl text-xs text-[#C084FC] flex items-center gap-2 animate-fadeIn">
-                    <CheckCircle2 className="w-4 h-4 text-[#C084FC] shrink-0" />
+                  <div className="p-3 bg-emerald-950/40 border border-emerald-800 rounded-xl text-xs text-emerald-300 flex items-center gap-2 animate-fadeIn">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
                     <span>Download initiated successfully! Check browser downloads.</span>
+                  </div>
+                )}
+                {downloadError && (
+                  <div className="p-3 bg-rose-950/40 border border-rose-800 rounded-xl text-xs text-rose-300 flex items-center gap-2 animate-fadeIn">
+                    <X className="w-4 h-4 text-rose-400 shrink-0" />
+                    <span>{downloadError}</span>
                   </div>
                 )}
 

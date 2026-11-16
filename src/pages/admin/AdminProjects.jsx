@@ -216,6 +216,23 @@ export const AdminProjects = () => {
     fetchData();
   }, []);
 
+  // Auto-poll for status updates whenever any product is in BUILDING status
+  useEffect(() => {
+    const hasBuilding = projects.some((p) => p.previewStatus === 'BUILDING');
+    if (!hasBuilding) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const prodRes = await adminAPI.getProducts({ limit: 100 });
+        if (prodRes && prodRes.products) {
+          setProducts(prodRes.products || []);
+        }
+      } catch (_) {}
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [projects]);
+
   const openCreateModal = () => {
     if (categories.length === 0) {
       fetchData();
