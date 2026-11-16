@@ -75,6 +75,28 @@ export const ProjectDetails = () => {
     fetchProduct();
   }, [slug]);
 
+  // Auto-poll project status if preview is currently building so user does not stay stuck on loading
+  useEffect(() => {
+    let pollInterval = null;
+    if (product?.previewStatus === 'BUILDING') {
+      pollInterval = setInterval(async () => {
+        try {
+          const res = await publicAPI.getProductBySlug(slug);
+          if (res.success && res.product) {
+            setProduct(res.product);
+            if (res.product.previewStatus === 'READY' && res.product.previewUrl) {
+              setActiveMediaTab('preview');
+              clearInterval(pollInterval);
+            }
+          }
+        } catch (_) {}
+      }, 3000);
+    }
+    return () => {
+      if (pollInterval) clearInterval(pollInterval);
+    };
+  }, [product?.previewStatus, slug]);
+
   const handleFreeDownload = async () => {
     if (!isAuthenticated) {
       navigate('/login', { state: { from: `/projects/${slug}` } });
