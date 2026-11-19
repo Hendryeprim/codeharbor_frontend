@@ -104,8 +104,9 @@ export const AdminEmployees = () => {
       if (res.success) {
         setManagedProjects(res.projects || []);
       }
-    } catch (e) {}
+    } catch (e) { }
   };
+
 
   useEffect(() => {
     fetchEmployees();
@@ -214,11 +215,10 @@ export const AdminEmployees = () => {
           <button
             type="button"
             onClick={() => setActiveTab('directory')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-              activeTab === 'directory'
-                ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-neon-glow'
-                : 'text-slate-400 hover:text-white'
-            }`}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition ${activeTab === 'directory'
+              ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-neon-glow'
+              : 'text-slate-400 hover:text-white'
+              }`}
           >
             <Users className="w-3.5 h-3.5" />
             <span>All Employees ({employees.length})</span>
@@ -226,11 +226,10 @@ export const AdminEmployees = () => {
           <button
             type="button"
             onClick={() => setActiveTab('add')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-              activeTab === 'add'
-                ? 'bg-gradient-to-r from-[#A855F7] to-[#C084FC] text-white shadow-purple-glow'
-                : 'text-slate-400 hover:text-white'
-            }`}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition ${activeTab === 'add'
+              ? 'bg-gradient-to-r from-[#A855F7] to-[#C084FC] text-white shadow-purple-glow'
+              : 'text-slate-400 hover:text-white'
+              }`}
           >
             <UserPlus className="w-3.5 h-3.5" />
             <span>+ Add Employee</span>
@@ -238,11 +237,10 @@ export const AdminEmployees = () => {
           <button
             type="button"
             onClick={() => setActiveTab('projects')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-              activeTab === 'projects'
-                ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-neon-glow'
-                : 'text-slate-400 hover:text-white'
-            }`}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition ${activeTab === 'projects'
+              ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-neon-glow'
+              : 'text-slate-400 hover:text-white'
+              }`}
           >
             <FolderGit2 className="w-3.5 h-3.5" />
             <span>Assigned Projects ({managedProjects.length})</span>
@@ -359,11 +357,10 @@ export const AdminEmployees = () => {
                         </td>
                         <td className="py-3.5 px-4">
                           <span
-                            className={`px-2 py-0.5 rounded-full font-mono text-[9px] font-bold uppercase ${
-                              emp.status === 'ACTIVE'
-                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                                : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
-                            }`}
+                            className={`px-2 py-0.5 rounded-full font-mono text-[9px] font-bold uppercase ${emp.status === 'ACTIVE'
+                              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                              : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                              }`}
                           >
                             {emp.status}
                           </span>
@@ -404,11 +401,10 @@ export const AdminEmployees = () => {
                             <button
                               onClick={() => handleToggleStatus(emp.id, emp.status)}
                               title={emp.status === 'ACTIVE' ? 'Disable Account' : 'Enable Account'}
-                              className={`p-1.5 rounded-lg text-xs font-bold ${
-                                emp.status === 'ACTIVE'
-                                  ? 'text-rose-400 hover:bg-rose-950/40'
-                                  : 'text-emerald-400 hover:bg-emerald-950/40'
-                              }`}
+                              className={`p-1.5 rounded-lg text-xs font-bold ${emp.status === 'ACTIVE'
+                                ? 'text-rose-400 hover:bg-rose-950/40'
+                                : 'text-emerald-400 hover:bg-emerald-950/40'
+                                }`}
                             >
                               {emp.status === 'ACTIVE' ? (
                                 <XCircle className="w-3.5 h-3.5" />
@@ -663,13 +659,12 @@ export const AdminEmployees = () => {
                         </td>
                         <td className="py-3.5 px-4">
                           <span
-                            className={`px-2 py-0.5 rounded-full font-mono text-[9px] font-bold uppercase ${
-                              proj.status === 'APPROVED'
-                                ? 'bg-emerald-500/20 text-emerald-400'
-                                : proj.status === 'REVISION_REQUIRED'
+                            className={`px-2 py-0.5 rounded-full font-mono text-[9px] font-bold uppercase ${proj.status === 'APPROVED'
+                              ? 'bg-emerald-500/20 text-emerald-400'
+                              : proj.status === 'REVISION_REQUIRED'
                                 ? 'bg-rose-500/20 text-rose-400'
                                 : 'bg-purple-500/20 text-purple-400'
-                            }`}
+                              }`}
                           >
                             {proj.status.replace('_', ' ')}
                           </span>

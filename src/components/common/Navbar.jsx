@@ -14,10 +14,11 @@ import {
   ChevronDown,
   Search,
   Zap,
+  Briefcase,
 } from 'lucide-react';
 
 export const Navbar = () => {
-  const { user, isAuthenticated, isAdmin, logout } = useAuth();
+  const { user, isAuthenticated, isAdmin, isEmployee, logout } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
@@ -137,6 +138,25 @@ export const Navbar = () => {
                         <ShieldAlert className="w-4 h-4 text-[#C084FC]" />
                         <span>Admin Console</span>
                       </Link>
+                    ) : isEmployee ? (
+                      <>
+                        <Link
+                          to="/employee/dashboard"
+                          onClick={() => setUserDropdownOpen(false)}
+                          className="flex items-center gap-2.5 px-4 py-2.5 text-slate-200 hover:text-white hover:bg-[#1E173E] transition"
+                        >
+                          <Briefcase className="w-4 h-4 text-[#00FFC6]" />
+                          <span>Employee Portal</span>
+                        </Link>
+                        <Link
+                          to="/employee/tasks"
+                          onClick={() => setUserDropdownOpen(false)}
+                          className="flex items-center gap-2.5 px-4 py-2.5 text-slate-200 hover:text-white hover:bg-[#1E173E] transition"
+                        >
+                          <FolderCode className="w-4 h-4 text-[#A855F7]" />
+                          <span>Assigned Tasks</span>
+                        </Link>
+                      </>
                     ) : (
                       <>
                         <Link
@@ -246,11 +266,11 @@ export const Navbar = () => {
             {isAuthenticated ? (
               <>
                 <Link
-                  to={isAdmin ? '/admin/dashboard' : '/customer/dashboard'}
+                  to={isAdmin ? '/admin/dashboard' : isEmployee ? '/employee/dashboard' : '/customer/dashboard'}
                   onClick={() => setMobileMenuOpen(false)}
                   className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#9333EA] to-[#7C3AED] text-white font-bold text-center text-xs shadow-purple-glow"
                 >
-                  {isAdmin ? 'Admin Console' : 'Customer Dashboard'}
+                  {isAdmin ? 'Admin Console' : isEmployee ? 'Employee Portal' : 'Customer Dashboard'}
                 </Link>
                 <button
                   onClick={handleLogout}

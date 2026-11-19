@@ -22,14 +22,21 @@ export const Login = () => {
 
     try {
       const data = await login(email, password);
-      if (from) {
-        navigate(from, { replace: true });
-      } else if (data.user?.role === 'ADMIN') {
-        navigate('/admin/dashboard', { replace: true });
-      } else if (data.user?.role === 'EMPLOYEE') {
+      const userRole = data.user?.role;
+
+      if (userRole === 'EMPLOYEE') {
+        // Admin-created employees go directly to the Employee Portal
         navigate('/employee/dashboard', { replace: true });
+      } else if (userRole === 'ADMIN') {
+        // Admins go directly to Admin Console
+        navigate('/admin/dashboard', { replace: true });
       } else {
-        navigate('/projects', { replace: true });
+        // Normal customers go to Customer Dashboard / Customer Site
+        if (from && !from.startsWith('/admin') && !from.startsWith('/employee') && from !== '/login') {
+          navigate(from, { replace: true });
+        } else {
+          navigate('/customer/dashboard', { replace: true });
+        }
       }
     } catch (err) {
       setError(err.message || 'Login failed. Please check your credentials.');
