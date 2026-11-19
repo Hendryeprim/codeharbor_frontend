@@ -41,18 +41,22 @@ export const EmployeeProjects = () => {
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
   const [activePreviewUrl, setActivePreviewUrl] = useState('');
   const [previewTitle, setPreviewTitle] = useState('');
+  const [activeVersionId, setActiveVersionId] = useState(null);
 
-  const openPreview = (url, title) => {
+  const openPreview = (url, title, versionId = null) => {
     if (!url) return;
     setActivePreviewUrl(url);
     setPreviewTitle(title || 'Live Project Output');
+    setActiveVersionId(versionId);
     setPreviewModalOpen(true);
   };
 
   const handleUploadSuccess = (res) => {
     fetchProjects();
-    if (res.version?.liveDemoUrl) {
-      openPreview(res.version.liveDemoUrl, `${res.project?.title || 'Project'} (v${res.version.versionNumber})`);
+    const vId = res.version?.id;
+    const vUrl = res.version?.liveDemoUrl || (vId ? `/previews/managed-${vId}/` : null);
+    if (vUrl) {
+      openPreview(vUrl, `${res.project?.title || 'Project'} (v${res.version?.versionNumber || 1})`, vId);
     }
   };
 
@@ -354,6 +358,7 @@ export const EmployeeProjects = () => {
         onClose={() => setPreviewModalOpen(false)}
         previewUrl={activePreviewUrl}
         projectTitle={previewTitle}
+        versionId={activeVersionId}
       />
 
       {/* Delete Project Confirmation Modal */}

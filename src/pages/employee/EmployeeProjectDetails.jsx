@@ -25,6 +25,7 @@ import {
   ChevronRight,
   ShieldAlert,
   Trash2,
+  Terminal,
 } from 'lucide-react';
 
 export const EmployeeProjectDetails = () => {
@@ -174,10 +175,10 @@ export const EmployeeProjectDetails = () => {
         setReadmeContent('');
         await fetchProjectDetails();
 
-        // If an output screen was generated, immediately open it for the employee!
-        if (res.version?.liveDemoUrl) {
-          openPreview(res.version.liveDemoUrl, `${project?.title || 'Project'} (v${res.version.versionNumber})`, res.version.id);
-        }
+        // Immediately open the Live Output Screen & Terminal for the employee!
+        const targetVersionId = res.version?.id || (project?.submissions?.[0]?.versions?.[0]?.id);
+        const targetPreviewUrl = res.version?.liveDemoUrl || `/previews/managed-${targetVersionId}/`;
+        openPreview(targetPreviewUrl, `${project?.title || 'Project'} (v${res.version?.versionNumber || 1})`, targetVersionId);
       }
     } catch (err) {
       setUploadError(err.message || 'Upload failed.');
@@ -306,6 +307,24 @@ export const EmployeeProjectDetails = () => {
               >
                 <Play className="w-4 h-4 fill-current" />
                 <span>Start Project</span>
+              </button>
+            )}
+
+            {allVersions.length > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  const latestV = allVersions[0];
+                  openPreview(
+                    latestV.liveDemoUrl || `/previews/managed-${latestV.id}/`,
+                    `${project.title} (v${latestV.versionNumber})`,
+                    latestV.id
+                  );
+                }}
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 to-[#00FFC6] text-black font-extrabold text-xs uppercase tracking-wider hover:brightness-110 transition flex items-center justify-center gap-2 shadow-neon-glow"
+              >
+                <Play className="w-4 h-4 fill-current" />
+                <span>View Output Screen & Terminal</span>
               </button>
             )}
 
@@ -501,16 +520,14 @@ export const EmployeeProjectDetails = () => {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      {v.liveDemoUrl && (
-                        <button
-                          type="button"
-                          onClick={() => openPreview(v.liveDemoUrl, `${project.title} (v${v.versionNumber})`, v.id)}
-                          className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-emerald-400 to-[#00FFC6] text-black font-extrabold flex items-center gap-1.5 font-mono text-[11px] hover:brightness-110 shadow-sm"
-                        >
-                          <Play className="w-3.5 h-3.5 fill-current" />
-                          <span>View Output Screen</span>
-                        </button>
-                      )}
+                      <button
+                        type="button"
+                        onClick={() => openPreview(v.liveDemoUrl || `/previews/managed-${v.id}/`, `${project.title} (v${v.versionNumber})`, v.id)}
+                        className="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-emerald-400 to-[#00FFC6] text-black font-extrabold flex items-center gap-1.5 font-mono text-[11px] hover:brightness-110 shadow-sm"
+                      >
+                        <Play className="w-3.5 h-3.5 fill-current" />
+                        <span>View Output Screen & Terminal</span>
+                      </button>
                       {v.githubUrl && (
                         <a
                           href={v.githubUrl}
@@ -536,17 +553,45 @@ export const EmployeeProjectDetails = () => {
                   {latestExec && (
                     <div className="p-3.5 rounded-xl bg-[#0B0F1A] border border-slate-800 space-y-2">
                       <div className="flex items-center justify-between font-mono text-[11px]">
-                        <span className="text-slate-400 font-bold uppercase">Automated Sandbox Verification</span>
-                        <span
-                          className={`font-black px-2 py-0.5 rounded ${
-                            latestExec.status === 'COMPLETED'
-                              ? 'bg-emerald-500/20 text-emerald-400'
-                              : 'bg-rose-500/20 text-rose-400'
-                          }`}
-                        >
-                          {latestExec.status}
+                        <span className="text-slate-400 font-bold uppercase flex items-center gap-1.5">
+                          <Terminal className="w-3.5 h-3.5 text-purple-400" />
+                          <span>Automated Sandbox Verification</span>
                         </span>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => openPreview(v.liveDemoUrl || `/previews/managed-${v.id}/`, `${project.title} (v${v.versionNumber})`, v.id)}
+                            className="text-[10px] text-cyan-400 hover:underline font-mono"
+                          >
+                            Open Live Console ↗
+                          </button>
+                          <span
+                            className={`font-black px-2 py-0.5 rounded ${
+                              latestExec.status === 'COMPLETED'
+                                ? 'bg-emerald-500/20 text-emerald-400'
+                                : latestExec.status === 'RUNNING'
+                                ? 'bg-amber-500/20 text-amber-400 animate-pulse'
+                                : 'bg-rose-500/20 text-rose-400'
+                            }`}
+                          >
+                            {latestExec.status}
+                          </span>
+                        </div>
                       </div>
+
+                      {/* Real Terminal Output Console right on the version card */}
+                      {latestExec.consoleLogs && (
+                        <div className="mt-2 rounded-lg bg-[#060814] border border-slate-800/80 overflow-hidden">
+                          <div className="bg-[#0B0F24] px-3 py-1 border-b border-slate-800 text-[10px] font-mono text-slate-400 flex items-center justify-between">
+                            <span>Execution & Error Logs</span>
+                            <span className="text-purple-300">Terminal Output</span>
+                          </div>
+                          <pre className="p-2.5 text-[10px] font-mono text-slate-300 max-h-36 overflow-y-auto whitespace-pre-wrap leading-relaxed select-text">
+                            {latestExec.consoleLogs}
+                          </pre>
+                        </div>
+                      )}
+
                       {latestExec.testResults && latestExec.testResults.length > 0 && (
                         <div className="space-y-1">
                           {latestExec.testResults.map((tr) => (
