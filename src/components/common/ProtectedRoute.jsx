@@ -19,15 +19,25 @@ export const ProtectedRoute = ({ children, requiredRole }) => {
   }
 
   if (!isAuthenticated) {
-    const redirectPath = requiredRole === 'ADMIN' ? '/admin/login' : '/login';
+    let redirectPath = '/login';
+    if (requiredRole === 'ADMIN') redirectPath = '/admin/login';
+    else if (requiredRole === 'EMPLOYEE') redirectPath = '/employee/login';
     return <Navigate to={redirectPath} state={{ from: location }} replace />;
   }
 
+  // If a specific role is required and doesn't match:
   if (requiredRole && user.role !== requiredRole) {
-    if (requiredRole === 'ADMIN') {
-      return <Navigate to="/admin/login" replace />;
-    }
+    if (user.role === 'ADMIN') return <Navigate to="/admin/dashboard" replace />;
+    if (user.role === 'EMPLOYEE') return <Navigate to="/employee/dashboard" replace />;
+    if (user.role === 'CUSTOMER') return <Navigate to="/customer/dashboard" replace />;
     return <Navigate to="/" replace />;
+  }
+
+  // If no requiredRole specified (like existing /customer routes), protect against role bleeding:
+  if (!requiredRole) {
+    if (user.role === 'EMPLOYEE') {
+      return <Navigate to="/employee/dashboard" replace />;
+    }
   }
 
   return children;

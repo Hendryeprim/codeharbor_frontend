@@ -23,6 +23,7 @@ import {
   Play,
   ExternalLink,
   GitBranch,
+  Tag,
 } from 'lucide-react';
 
 export const AdminProjects = () => {
@@ -56,7 +57,24 @@ export const AdminProjects = () => {
   const [syncingGithub, setSyncingGithub] = useState(false);
   const imageInputRef = useRef(null);
   const zipInputRef = useRef(null);
+  const [directZipInputRefState] = useState(null);
   const directZipInputRef = useRef(null);
+
+  // Simplified Unified Tabs
+  const [activeTab, setActiveTab] = useState('catalog'); // 'catalog' | 'direct_upload' | 'categories'
+
+  // Direct ZIP & File Upload Tab State
+  const [quickUploadProductId, setQuickUploadProductId] = useState('');
+  const [quickUploadVersion, setQuickUploadVersion] = useState('1.0.0');
+  const [quickZipFile, setQuickZipFile] = useState(null);
+  const [quickImgFile, setQuickImgFile] = useState(null);
+  const [uploadingQuickZip, setUploadingQuickZip] = useState(false);
+  const [uploadingQuickImg, setUploadingQuickImg] = useState(false);
+
+  // Categories Quick Management State
+  const [newCatName, setNewCatName] = useState('');
+  const [newCatDesc, setNewCatDesc] = useState('');
+  const [creatingCat, setCreatingCat] = useState(false);
 
   const showPageMessage = (message, type = 'success') => {
     setPageNotification({ type, message });
@@ -123,6 +141,62 @@ export const AdminProjects = () => {
       fetchData();
     } catch (err) {
       showPageMessage('Rebuild failed: ' + err.message, 'error');
+    }
+  };
+
+  const handleQuickZipUpload = async (e) => {
+    e.preventDefault();
+    if (!quickZipFile || !quickUploadProductId) return;
+    setUploadingQuickZip(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', quickZipFile);
+      formData.append('productId', quickUploadProductId);
+      formData.append('version', quickUploadVersion);
+      const res = await adminAPI.uploadProjectFile(formData);
+      showPageMessage(res.message || 'ZIP archive uploaded to secure storage! Live preview building.', 'success');
+      setQuickZipFile(null);
+      fetchData();
+    } catch (err) {
+      showPageMessage('Failed to upload archive: ' + err.message, 'error');
+    } finally {
+      setUploadingQuickZip(false);
+    }
+  };
+
+  const handleQuickImageUpload = async (e) => {
+    e.preventDefault();
+    if (!quickImgFile || !quickUploadProductId) return;
+    setUploadingQuickImg(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', quickImgFile);
+      formData.append('productId', quickUploadProductId);
+      const res = await adminAPI.uploadImage(formData);
+      showPageMessage('Screenshot / preview image uploaded successfully!', 'success');
+      setQuickImgFile(null);
+      fetchData();
+    } catch (err) {
+      showPageMessage('Failed to upload image: ' + err.message, 'error');
+    } finally {
+      setUploadingQuickImg(false);
+    }
+  };
+
+  const handleCreateCategory = async (e) => {
+    e.preventDefault();
+    if (!newCatName.trim()) return;
+    setCreatingCat(true);
+    try {
+      await adminAPI.createCategory({ name: newCatName.trim(), description: newCatDesc.trim() });
+      showPageMessage(`Category "${newCatName}" created successfully!`, 'success');
+      setNewCatName('');
+      setNewCatDesc('');
+      fetchData();
+    } catch (err) {
+      showPageMessage('Failed to create category: ' + err.message, 'error');
+    } finally {
+      setCreatingCat(false);
     }
   };
 
@@ -202,7 +276,12 @@ export const AdminProjects = () => {
         }),
       ]);
 
-      if (prodRes && prodRes.products) setProducts(prodRes.products || []);
+      if (prodRes && prodRes.products) {
+        setProducts(prodRes.products || []);
+        if (prodRes.products.length > 0) {
+          setQuickUploadProductId((prev) => prev || prodRes.products[0].id);
+        }
+      }
       if (catRes && catRes.categories) setCategories(catRes.categories || []);
       if (techRes && techRes.technologies) setTechnologies(techRes.technologies || []);
     } catch (err) {
@@ -436,40 +515,60 @@ export const AdminProjects = () => {
 
   return (
     <div className="space-y-6">
-      {/* Top Bar */}
+      {/* Top Bar with Simplified Tab Switcher */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#A855F7]/10 border border-[#A855F7]/30 text-[#A855F7] text-[11px] font-semibold tracking-wider uppercase mb-2">
-            <Zap className="w-3.5 h-3.5 text-[#C084FC]" />
-            Digital Project Inventory
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[11px] font-semibold tracking-wider uppercase mb-2">
+            <Package className="w-3.5 h-3.5 text-emerald-400" />
+            Customer Marketplace Deliverables
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-[#E2E8F0] tracking-tight">
-            Project Management
+            Customer Projects & Upload Center
           </h1>
           <p className="text-xs sm:text-sm text-[#C0C7D1]/70 mt-1">
-            Create, publish, edit, and organize digital project software packages and code bundles.
+            Upload new customer software projects, manage ZIP packages, configure live demos, and organize store categories.
           </p>
         </div>
 
-        <button
-          onClick={openCreateModal}
-          className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#A855F7] to-[#0A84FF] hover:shadow-purple-glow text-white font-bold text-xs flex items-center gap-2 transition duration-200 shrink-0 shadow-lg"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add New Project</span>
-        </button>
-      </div>
-
-      {/* Search Input */}
-      <div className="relative max-w-sm">
-        <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Filter by title..."
-          className="w-full pl-9 pr-3 py-2 rounded-xl border border-[#322659]/80 bg-[#0E0A1C] text-[#E2E8F0] placeholder-slate-500 text-xs focus:outline-none focus:border-[#A855F7] focus:ring-1 focus:ring-[#A855F7]"
-        />
+        {/* Tab Switcher Pills */}
+        <div className="flex items-center p-1 bg-[#0F172A] border border-[#334155] rounded-xl self-start sm:self-auto">
+          <button
+            type="button"
+            onClick={() => setActiveTab('catalog')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+              activeTab === 'catalog'
+                ? 'bg-gradient-to-r from-emerald-600 to-teal-500 text-white shadow-neon-glow'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Package className="w-3.5 h-3.5" />
+            <span>Store Catalog ({products.length})</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('direct_upload')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+              activeTab === 'direct_upload'
+                ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-neon-glow'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Upload className="w-3.5 h-3.5" />
+            <span>+ Quick ZIP Upload</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('categories')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+              activeTab === 'categories'
+                ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-purple-glow'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Tag className="w-3.5 h-3.5" />
+            <span>Categories ({categories.length})</span>
+          </button>
+        </div>
       </div>
 
       {/* Page Notification Banner */}
@@ -491,6 +590,31 @@ export const AdminProjects = () => {
           </button>
         </div>
       )}
+
+      {/* TAB 1: STORE PROJECTS & UPLOAD */}
+      {activeTab === 'catalog' && (
+        <div className="space-y-4 animate-fadeIn">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            {/* Search Input */}
+            <div className="relative max-w-sm w-full">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Filter projects by title..."
+                className="w-full pl-9 pr-3 py-2 rounded-xl border border-[#322659]/80 bg-[#0E0A1C] text-[#E2E8F0] placeholder-slate-500 text-xs focus:outline-none focus:border-emerald-500"
+              />
+            </div>
+
+            <button
+              onClick={openCreateModal}
+              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-black text-xs uppercase tracking-wider hover:brightness-110 shadow-neon-glow flex items-center gap-2 transition shrink-0"
+            >
+              <Plus className="w-4 h-4" />
+              <span>+ Upload New Project</span>
+            </button>
+          </div>
 
       {/* Projects Table */}
       {loading ? (
@@ -679,6 +803,207 @@ export const AdminProjects = () => {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+      </div>
+      )}
+
+      {/* TAB 2: DIRECT ZIP ARCHIVE & DELIVERABLES UPLOADER */}
+      {activeTab === 'direct_upload' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fadeIn">
+          {/* ZIP Package Upload Card */}
+          <div className="p-6 rounded-3xl bg-[#0F172A] border border-[#334155] space-y-5">
+            <div>
+              <h2 className="text-base font-black text-white flex items-center gap-2">
+                <FileArchive className="w-5 h-5 text-cyan-400" />
+                <span>Upload Project ZIP Package</span>
+              </h2>
+              <p className="text-xs text-slate-400 mt-1">
+                Upload production source code zip archive into private encrypted storage.
+              </p>
+            </div>
+
+            <form onSubmit={handleQuickZipUpload} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-bold text-slate-300 mb-1">Select Target Project *</label>
+                <select
+                  value={quickUploadProductId}
+                  onChange={(e) => setQuickUploadProductId(e.target.value)}
+                  className="w-full p-2.5 rounded-xl border border-slate-700 bg-[#0B0F1A] text-white focus:outline-none focus:border-cyan-400"
+                >
+                  {products.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.title} (${p.price})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-300 mb-1">Package Version *</label>
+                <input
+                  type="text"
+                  required
+                  value={quickUploadVersion}
+                  onChange={(e) => setQuickUploadVersion(e.target.value)}
+                  placeholder="e.g. 1.0.0 or 2.1.0"
+                  className="w-full p-2.5 rounded-xl border border-slate-700 bg-[#0B0F1A] text-white focus:outline-none focus:border-cyan-400 font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-300 mb-1">ZIP File Archive *</label>
+                <input
+                  type="file"
+                  required
+                  accept=".zip,.tar.gz,.rar"
+                  onChange={(e) => setQuickZipFile(e.target.files?.[0] || null)}
+                  className="w-full p-2.5 rounded-xl border border-slate-700 bg-[#0B0F1A] text-slate-300 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-cyan-500/20 file:text-cyan-300 file:font-bold file:text-xs hover:file:bg-cyan-500/30"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={uploadingQuickZip || !quickZipFile}
+                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-extrabold shadow-neon-glow hover:brightness-110 transition flex items-center justify-center gap-2"
+              >
+                {uploadingQuickZip ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Uploading ZIP & Building Preview...</span>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-4 h-4" />
+                    <span>Upload Project ZIP Archive</span>
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
+
+          {/* Screenshot / Image Uploader Card */}
+          <div className="p-6 rounded-3xl bg-[#0F172A] border border-[#334155] space-y-5">
+            <div>
+              <h2 className="text-base font-black text-white flex items-center gap-2">
+                <Image className="w-5 h-5 text-purple-400" />
+                <span>Upload Screenshots & Media</span>
+              </h2>
+              <p className="text-xs text-slate-400 mt-1">
+                Upload visual promotional banners and UI screenshots for customer preview.
+              </p>
+            </div>
+
+            <form onSubmit={handleQuickImageUpload} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-bold text-slate-300 mb-1">Select Target Project *</label>
+                <select
+                  value={quickUploadProductId}
+                  onChange={(e) => setQuickUploadProductId(e.target.value)}
+                  className="w-full p-2.5 rounded-xl border border-slate-700 bg-[#0B0F1A] text-white focus:outline-none focus:border-purple-400"
+                >
+                  {products.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-300 mb-1">Image / Screenshot *</label>
+                <input
+                  type="file"
+                  required
+                  accept="image/png,image/jpeg,image/webp"
+                  onChange={(e) => setQuickImgFile(e.target.files?.[0] || null)}
+                  className="w-full p-2.5 rounded-xl border border-slate-700 bg-[#0B0F1A] text-slate-300 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-purple-500/20 file:text-purple-300 file:font-bold file:text-xs hover:file:bg-purple-500/30"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={uploadingQuickImg || !quickImgFile}
+                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#A855F7] to-[#C084FC] text-white font-extrabold shadow-purple-glow hover:brightness-110 transition flex items-center justify-center gap-2"
+              >
+                {uploadingQuickImg ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Uploading Screenshot...</span>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-4 h-4" />
+                    <span>Upload Screenshot Deliverable</span>
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 3: CATEGORIES MANAGEMENT */}
+      {activeTab === 'categories' && (
+        <div className="space-y-6 animate-fadeIn">
+          {/* Create Category Form */}
+          <div className="p-6 rounded-3xl bg-[#0F172A] border border-[#334155] max-w-xl space-y-4">
+            <h2 className="text-base font-black text-white flex items-center gap-2">
+              <Tag className="w-5 h-5 text-purple-400" />
+              <span>Create New Project Category</span>
+            </h2>
+
+            <form onSubmit={handleCreateCategory} className="space-y-3.5 text-xs">
+              <div>
+                <label className="block font-bold text-slate-300 mb-1">Category Name *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Web Applications, Full Stack, Mobile"
+                  value={newCatName}
+                  onChange={(e) => setNewCatName(e.target.value)}
+                  className="w-full p-2.5 rounded-xl border border-slate-700 bg-[#0B0F1A] text-white focus:outline-none focus:border-purple-400"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-300 mb-1">Description</label>
+                <input
+                  type="text"
+                  placeholder="Short summary of this project category"
+                  value={newCatDesc}
+                  onChange={(e) => setNewCatDesc(e.target.value)}
+                  className="w-full p-2.5 rounded-xl border border-slate-700 bg-[#0B0F1A] text-white focus:outline-none focus:border-purple-400"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={creatingCat || !newCatName.trim()}
+                className="py-2.5 px-5 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-extrabold hover:brightness-110 shadow-purple-glow transition"
+              >
+                {creatingCat ? 'Creating...' : '+ Add Category'}
+              </button>
+            </form>
+          </div>
+
+          {/* Categories List */}
+          <div className="p-6 rounded-3xl bg-[#0F172A] border border-[#334155] space-y-4">
+            <h3 className="text-sm font-bold text-white">Existing Categories ({categories.length})</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              {categories.map((c) => (
+                <div key={c.id} className="p-3.5 rounded-2xl bg-[#131B2E] border border-slate-800 flex items-center justify-between text-xs">
+                  <div>
+                    <p className="font-bold text-white">{c.name}</p>
+                    <p className="text-[10px] text-slate-400">{c.description || 'No description'}</p>
+                  </div>
+                  <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/20">
+                    Category
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}

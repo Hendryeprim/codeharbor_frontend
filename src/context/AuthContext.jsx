@@ -95,6 +95,7 @@ export const AuthProvider = ({ children }) => {
         refreshUser,
         isAuthenticated: !!user,
         isAdmin: user?.role === 'ADMIN',
+        isEmployee: user?.role === 'EMPLOYEE',
         isCustomer: user?.role === 'CUSTOMER',
       }}
     >

@@ -153,7 +153,8 @@ export const supportAPI = {
 };
 
 export const adminAPI = {
-  getDashboard: () => apiRequest('/admin/dashboard'),
+  getDashboard: () => apiRequest('/admin/marketplace-dashboard'),
+  getMarketplaceDashboard: () => apiRequest('/admin/marketplace-dashboard'),
   getProducts: (params = {}) => {
     const query = new URLSearchParams(params).toString();
     return apiRequest(`/admin/products${query ? `?${query}` : ''}`);
@@ -213,4 +214,114 @@ export const adminAPI = {
     apiRequest(`/admin/products/${id}/preview/toggle`, { method: 'PATCH', body: JSON.stringify({ enable }) }),
   getPreviewLogs: (id) =>
     apiRequest(`/admin/products/${id}/preview/logs`),
+};
+
+export const adminPortalAPI = {
+  getDashboard: () => apiRequest('/admin/dashboard'),
+  getEmployees: (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return apiRequest(`/admin/employees${query ? `?${query}` : ''}`);
+  },
+  createEmployee: (data) =>
+    apiRequest('/admin/employees', { method: 'POST', body: JSON.stringify(data) }),
+  getEmployeeById: (id) => apiRequest(`/admin/employees/${id}`),
+  updateEmployee: (id, data) =>
+    apiRequest(`/admin/employees/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  toggleEmployeeStatus: (id) =>
+    apiRequest(`/admin/employees/${id}/status`, { method: 'PATCH' }),
+  getEmployeePerformance: () => apiRequest('/admin/employees/performance'),
+  getEmployeeSkills: () => apiRequest('/admin/employees/skills'),
+
+  getProjects: (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return apiRequest(`/admin/managed-projects${query ? `?${query}` : ''}`);
+  },
+  createProject: (data) =>
+    apiRequest('/admin/managed-projects', { method: 'POST', body: JSON.stringify(data) }),
+  getProjectById: (id) => apiRequest(`/admin/managed-projects/${id}`),
+  updateProject: (id, data) =>
+    apiRequest(`/admin/managed-projects/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deleteProject: (id) =>
+    apiRequest(`/admin/managed-projects/${id}`, { method: 'DELETE' }),
+
+  getReviews: () => apiRequest('/admin/project-reviews'),
+  getReviewById: (submissionId) => apiRequest(`/admin/project-reviews/${submissionId}`),
+  runExecution: (versionId) =>
+    apiRequest(`/admin/project-reviews/${versionId}/run`, { method: 'POST' }),
+  stopExecution: (versionId) =>
+    apiRequest(`/admin/project-reviews/${versionId}/stop`, { method: 'POST' }),
+  submitFeedback: (submissionId, data) =>
+    apiRequest(`/admin/project-reviews/${submissionId}/feedback`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  getTasks: (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return apiRequest(`/admin/tasks${query ? `?${query}` : ''}`);
+  },
+  createTask: (data) =>
+    apiRequest('/admin/tasks', { method: 'POST', body: JSON.stringify(data) }),
+  updateTask: (id, data) =>
+    apiRequest(`/admin/tasks/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deleteTask: (id) =>
+    apiRequest(`/admin/tasks/${id}`, { method: 'DELETE' }),
+
+  getExecutions: () => apiRequest('/admin/executions'),
+  getExecutionById: (id) => apiRequest(`/admin/executions/${id}`),
+  getProjectExecution: (versionId) => apiRequest(`/admin/project-reviews/${versionId}/execution`),
+  rerunExecution: (versionId) => apiRequest(`/admin/project-reviews/${versionId}/run`, { method: 'POST' }),
+
+  getNotifications: () => apiRequest('/admin/notifications'),
+  markNotificationRead: (id) =>
+    apiRequest(`/admin/notifications/${id}/read`, { method: 'PATCH' }),
+  getAuditLogs: () => apiRequest('/admin/audit-logs'),
+};
+
+export const employeeAPI = {
+  getDashboard: () => apiRequest('/employee/dashboard'),
+  getProjects: (status) => {
+    const query = status ? `?status=${encodeURIComponent(status)}` : '';
+    return apiRequest(`/employee/projects${query}`);
+  },
+  getProjectById: (id) => apiRequest(`/employee/projects/${id}`),
+  deleteProject: (id) => apiRequest(`/employee/projects/${id}`, { method: 'DELETE' }),
+  startProject: (id) => apiRequest(`/employee/projects/${id}/start`, { method: 'PATCH' }),
+  updateProgress: (id, data) =>
+    apiRequest(`/employee/projects/${id}/progress`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+  uploadSubmission: (id, formData) =>
+    apiRequest(`/employee/projects/${id}/upload`, {
+      method: 'POST',
+      body: formData,
+    }),
+  uploadDirectProject: (formData) =>
+    apiRequest('/employee/projects/upload', {
+      method: 'POST',
+      body: formData,
+    }),
+
+  getTasks: () => apiRequest('/employee/tasks'),
+  updateTaskStatus: (id, status) =>
+    apiRequest(`/employee/tasks/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    }),
+
+  getSubmissions: () => apiRequest('/employee/submissions'),
+  deleteSubmission: (submissionId) => apiRequest(`/employee/submissions/${submissionId}`, { method: 'DELETE' }),
+  getSubmissionExecution: (versionId) => apiRequest(`/employee/submissions/${versionId}/execution`),
+  rerunSubmissionExecution: (versionId) => apiRequest(`/employee/submissions/${versionId}/run`, { method: 'POST' }),
+  getNotifications: () => apiRequest('/employee/notifications'),
+  markNotificationRead: (id) =>
+    apiRequest(`/employee/notifications/${id}/read`, { method: 'PATCH' }),
+
+  getProfile: () => apiRequest('/employee/profile'),
+  updateProfile: (data) =>
+    apiRequest('/employee/profile', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
 };

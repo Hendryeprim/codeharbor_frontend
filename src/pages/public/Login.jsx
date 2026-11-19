@@ -26,6 +26,8 @@ export const Login = () => {
         navigate(from, { replace: true });
       } else if (data.user?.role === 'ADMIN') {
         navigate('/admin/dashboard', { replace: true });
+      } else if (data.user?.role === 'EMPLOYEE') {
+        navigate('/employee/dashboard', { replace: true });
       } else {
         navigate('/projects', { replace: true });
       }
@@ -37,7 +39,7 @@ export const Login = () => {
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 text-[#E2E8F0]">
+    <div className="min-h-[calc(100vh-80px)] flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8 text-[#E2E8F0]">
       <div className="max-w-md w-full space-y-7 bg-[#140F28]/90 p-8 sm:p-10 rounded-3xl border border-[#322659]/80 shadow-harbor-lg backdrop-blur-xl">
         <div className="text-center">
           <Link to="/" className="inline-block mb-3">
