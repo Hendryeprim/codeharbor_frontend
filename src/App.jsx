@@ -40,6 +40,9 @@ import { EmployeeTasks } from './pages/employee/EmployeeTasks';
 import { EmployeeSubmissions } from './pages/employee/EmployeeSubmissions';
 import { EmployeeNotifications } from './pages/employee/EmployeeNotifications';
 import { EmployeeProfile } from './pages/employee/EmployeeProfile';
+import { EmployeeSkillTracks } from './pages/employee/EmployeeSkillTracks';
+import { EmployeeCodingWorkspace } from './pages/employee/EmployeeCodingWorkspace';
+import { EmployeeAdvancedProjectWorkspace } from './pages/employee/EmployeeAdvancedProjectWorkspace';
 
 // Admin Portal Pages
 import { AdminLogin } from './pages/admin/AdminLogin';
@@ -53,6 +56,9 @@ import { AdminManagedProjects } from './pages/admin/AdminManagedProjects';
 import { AdminCreateProject } from './pages/admin/AdminCreateProject';
 import { AdminProjectReviews } from './pages/admin/AdminProjectReviews';
 import { AdminTasks } from './pages/admin/AdminTasks';
+import { AdminSkillCurriculum } from './pages/admin/AdminSkillCurriculum';
+import { AdminTaskSubmissions } from './pages/admin/AdminTaskSubmissions';
+import { AdminSkillProgressDashboard } from './pages/admin/AdminSkillProgressDashboard';
 import { AdminExecutions } from './pages/admin/AdminExecutions';
 import { AdminNotifications } from './pages/admin/AdminNotifications';
 import { AdminReports } from './pages/admin/AdminReports';
@@ -121,9 +127,12 @@ export default function App() {
           >
             <Route index element={<Navigate to="/employee/dashboard" replace />} />
             <Route path="dashboard" element={<EmployeeDashboard />} />
+            <Route path="skills" element={<EmployeeSkillTracks />} />
+            <Route path="skills/:skillSlug/tasks/:taskId" element={<EmployeeCodingWorkspace />} />
+            <Route path="skills/:skillSlug/advanced/:taskId" element={<EmployeeAdvancedProjectWorkspace />} />
             <Route path="projects" element={<EmployeeProjects />} />
             <Route path="projects/:id" element={<EmployeeProjectDetails />} />
-            <Route path="tasks" element={<EmployeeTasks />} />
+            <Route path="tasks" element={<EmployeeSkillTracks />} />
             <Route path="submissions" element={<EmployeeSubmissions />} />
             <Route path="notifications" element={<EmployeeNotifications />} />
             <Route path="profile" element={<EmployeeProfile />} />
@@ -148,7 +157,7 @@ export default function App() {
             <Route path="employees" element={<AdminEmployees />} />
             <Route path="employees/add" element={<AdminAddEmployee />} />
             <Route path="employees/performance" element={<AdminEmployeePerformance />} />
-            <Route path="employees/skills" element={<AdminEmployeeSkills />} />
+            <Route path="employees/skills" element={<AdminSkillProgressDashboard />} />
             <Route path="employees/:id" element={<AdminEmployeeProfile />} />
 
             {/* Managed Projects */}
@@ -158,7 +167,14 @@ export default function App() {
             {/* Reviews & Executions */}
             <Route path="project-reviews" element={<AdminProjectReviews />} />
             <Route path="project-reviews/:submissionId" element={<AdminProjectReviews />} />
-            <Route path="tasks" element={<AdminTasks />} />
+            
+            {/* Skill Curriculum & Tasks */}
+            <Route path="tasks" element={<AdminSkillCurriculum />} />
+            <Route path="tasks/curriculum" element={<AdminSkillCurriculum />} />
+            <Route path="tasks/submissions" element={<AdminTaskSubmissions />} />
+            <Route path="tasks/progress" element={<AdminSkillProgressDashboard />} />
+            <Route path="task-submissions" element={<AdminTaskSubmissions />} />
+            <Route path="skill-progress" element={<AdminSkillProgressDashboard />} />
             <Route path="executions" element={<AdminExecutions />} />
             <Route path="notifications" element={<AdminNotifications />} />
             <Route path="reports" element={<AdminReports />} />

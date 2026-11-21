@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { employeeAPI } from '../../services/api';
+import { employeeAPI, employeeCurriculumAPI } from '../../services/api';
 import { LivePreviewModal } from '../../components/common/LivePreviewModal';
-import { UploadProjectModal } from '../../components/employee/UploadProjectModal';
 import {
   FolderGit2,
   Clock,
@@ -18,10 +17,14 @@ import {
   CheckSquare,
   UploadCloud,
   Play,
+  Lock,
+  Unlock,
+  ChevronRight,
 } from 'lucide-react';
 
 export const EmployeeDashboard = () => {
   const [data, setData] = useState(null);
+  const [skills, setSkills] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -51,9 +54,15 @@ export const EmployeeDashboard = () => {
   const fetchDashboard = async () => {
     try {
       setLoading(true);
-      const res = await employeeAPI.getDashboard();
-      if (res.success) {
-        setData(res);
+      const [res, skillRes] = await Promise.allSettled([
+        employeeAPI.getDashboard(),
+        employeeCurriculumAPI.getMySkills(),
+      ]);
+      if (res.status === 'fulfilled' && res.value.success) {
+        setData(res.value);
+      }
+      if (skillRes.status === 'fulfilled' && skillRes.value.success) {
+        setSkills(skillRes.value.skills || []);
       }
     } catch (err) {
       setError(err.message || 'Failed to load employee dashboard.');
@@ -167,6 +176,152 @@ export const EmployeeDashboard = () => {
             </div>
           );
         })}
+      </div>
+
+      {/* ─── MY ASSIGNED SKILLS & 3-LEVEL CURRICULUM TRACKS ─── */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#9333EA] to-[#00FFC6] flex items-center justify-center text-white shadow-neon-glow">
+              <Sparkles className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="text-base font-black text-white flex items-center gap-2">
+                <span>My Assigned Skills & Tasks</span>
+              </h2>
+              <p className="text-xs text-slate-400">Sequential 3-level progression system (Basic → Intermediate → Advanced)</p>
+            </div>
+          </div>
+          <Link
+            to="/employee/skills"
+            className="text-xs font-bold text-[#00FFC6] hover:underline flex items-center gap-1 group"
+          >
+            <span>View All Tasks</span>
+            <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+          </Link>
+        </div>
+
+        {skills.length === 0 ? (
+          <div className="p-6 text-center bg-[#0F172A] border border-[#334155] rounded-3xl text-slate-400 text-xs">
+            No specific skills assigned yet. Please contact your administrator.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {skills.map((s) => {
+              const p = s.progress || {};
+              const unlockedLevel = p.unlockedLevel || 'BASIC';
+              const isBasicDone = Boolean(p.basicCompleted);
+              const isInterDone = Boolean(p.intermediateCompleted);
+              const isAdvDone = Boolean(p.advancedCompleted);
+
+              const percent = isAdvDone ? 100 : isInterDone ? 66 : isBasicDone ? 33 : 10;
+
+              return (
+                <div
+                  key={s.id}
+                  className="p-5 rounded-3xl bg-[#0F172A]/90 border border-[#334155]/80 hover:border-[#00FFC6]/60 transition-all flex flex-col justify-between gap-4 group"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-xl bg-cyan-950/80 border border-cyan-500/40 text-cyan-400 flex items-center justify-center font-bold font-mono text-sm">
+                          {s.name.slice(0, 2).toUpperCase()}
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-black text-white group-hover:text-[#00FFC6] transition-colors">
+                            {s.name}
+                          </h3>
+                          <span className="text-[10px] font-mono text-slate-400">
+                            Current: <strong className="text-cyan-300">{unlockedLevel}</strong>
+                          </span>
+                        </div>
+                      </div>
+                      <span className="text-xs font-mono font-bold text-[#00FFC6]">{percent}%</span>
+                    </div>
+
+                    {/* Progression bar */}
+                    <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                      <div
+                        className="bg-gradient-to-r from-[#0EA5E9] to-[#00FFC6] h-1.5 rounded-full transition-all duration-500"
+                        style={{ width: `${percent}%` }}
+                      />
+                    </div>
+
+                    {/* 3 Level badges */}
+                    <div className="grid grid-cols-3 gap-2 pt-1 text-center">
+                      {/* Basic */}
+                      <div
+                        className={`p-2 rounded-xl border text-[11px] font-bold flex flex-col items-center gap-1 ${
+                          isBasicDone
+                            ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-400'
+                            : 'bg-cyan-950/40 border-cyan-500/40 text-cyan-300'
+                        }`}
+                      >
+                        <span className="text-[9px] uppercase tracking-wider text-slate-400">Level 1</span>
+                        <span className="truncate">Basic</span>
+                        {isBasicDone ? (
+                          <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                        ) : (
+                          <Unlock className="w-3 h-3 text-cyan-400" />
+                        )}
+                      </div>
+
+                      {/* Intermediate */}
+                      <div
+                        className={`p-2 rounded-xl border text-[11px] font-bold flex flex-col items-center gap-1 ${
+                          isInterDone
+                            ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-400'
+                            : unlockedLevel === 'INTERMEDIATE' || unlockedLevel === 'ADVANCED'
+                            ? 'bg-cyan-950/40 border-cyan-500/40 text-cyan-300'
+                            : 'bg-slate-900/60 border-slate-800 text-slate-500 opacity-60'
+                        }`}
+                      >
+                        <span className="text-[9px] uppercase tracking-wider text-slate-500">Level 2</span>
+                        <span className="truncate">Interm.</span>
+                        {isInterDone ? (
+                          <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                        ) : unlockedLevel === 'INTERMEDIATE' || unlockedLevel === 'ADVANCED' ? (
+                          <Unlock className="w-3 h-3 text-cyan-400" />
+                        ) : (
+                          <Lock className="w-3 h-3 text-slate-500" />
+                        )}
+                      </div>
+
+                      {/* Advanced */}
+                      <div
+                        className={`p-2 rounded-xl border text-[11px] font-bold flex flex-col items-center gap-1 ${
+                          isAdvDone
+                            ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-400'
+                            : unlockedLevel === 'ADVANCED'
+                            ? 'bg-cyan-950/40 border-cyan-500/40 text-cyan-300'
+                            : 'bg-slate-900/60 border-slate-800 text-slate-500 opacity-60'
+                        }`}
+                      >
+                        <span className="text-[9px] uppercase tracking-wider text-slate-500">Level 3</span>
+                        <span className="truncate">Advanced</span>
+                        {isAdvDone ? (
+                          <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                        ) : unlockedLevel === 'ADVANCED' ? (
+                          <Unlock className="w-3 h-3 text-cyan-400" />
+                        ) : (
+                          <Lock className="w-3 h-3 text-slate-500" />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <Link
+                    to="/employee/skills"
+                    className="w-full py-2.5 rounded-xl bg-slate-800/80 hover:bg-[#00FFC6]/10 hover:border-[#00FFC6]/50 border border-slate-700/80 text-white hover:text-[#00FFC6] font-bold text-xs flex items-center justify-center gap-2 transition"
+                  >
+                    <span>Continue Tasks</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Main Sections: Recent Projects & Recent Tasks */}

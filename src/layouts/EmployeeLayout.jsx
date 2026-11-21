@@ -127,6 +127,21 @@ export const EmployeeLayout = () => {
               <span>Dashboard</span>
             </NavLink>
 
+            {/* My Skills & Tasks (3-Level System) */}
+            <NavLink
+              to="/employee/skills"
+              onClick={() => setSidebarOpen(false)}
+              className={navItemClass}
+            >
+              <Code2 className="w-4 h-4 shrink-0 text-[#00FFC6]" />
+              <div className="flex items-center justify-between flex-1">
+                <span>My Skills & Tasks</span>
+                <span className="text-[9px] px-1.5 py-0.5 rounded font-mono font-bold bg-[#00FFC6]/15 text-[#00FFC6] border border-[#00FFC6]/30">
+                  3 Levels
+                </span>
+              </div>
+            </NavLink>
+
             {/* My Projects */}
             <NavLink
               to="/employee/projects"

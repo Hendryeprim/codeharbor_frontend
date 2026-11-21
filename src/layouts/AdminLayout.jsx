@@ -139,7 +139,52 @@ export const AdminLayout = () => {
               <span>Dashboard</span>
             </NavLink>
 
-            {/* 2. Employee Workspace (Employee details all in one place) */}
+            {/* 2. Skill Curriculum & Tasks */}
+            <NavLink
+              to="/admin/tasks"
+              onClick={() => setSidebarOpen(false)}
+              className={navItemClass}
+            >
+              <Layers className="w-4 h-4 shrink-0 text-purple-400" />
+              <div className="flex items-center justify-between flex-1">
+                <span>Task Management</span>
+                <span className="text-[9px] px-1.5 py-0.5 rounded font-mono font-bold bg-purple-500/15 text-purple-300 border border-purple-500/30">
+                  Skills
+                </span>
+              </div>
+            </NavLink>
+
+            {/* 3. Task Submissions & Code Reviews */}
+            <NavLink
+              to="/admin/task-submissions"
+              onClick={() => setSidebarOpen(false)}
+              className={navItemClass}
+            >
+              <CheckSquare className="w-4 h-4 shrink-0 text-[#00FFC6]" />
+              <div className="flex items-center justify-between flex-1">
+                <span>Task Submissions</span>
+                <span className="text-[9px] px-1.5 py-0.5 rounded font-mono font-bold bg-[#00FFC6]/15 text-[#00FFC6] border border-[#00FFC6]/30">
+                  Review
+                </span>
+              </div>
+            </NavLink>
+
+            {/* 4. Employee Skill Progress Matrix */}
+            <NavLink
+              to="/admin/skill-progress"
+              onClick={() => setSidebarOpen(false)}
+              className={navItemClass}
+            >
+              <BarChart3 className="w-4 h-4 shrink-0 text-amber-400" />
+              <div className="flex items-center justify-between flex-1">
+                <span>Skill Progress</span>
+                <span className="text-[9px] px-1.5 py-0.5 rounded font-mono font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                  Levels
+                </span>
+              </div>
+            </NavLink>
+
+            {/* 5. Employee Workspace (Employee details all in one place) */}
             <NavLink
               to="/admin/employees"
               onClick={() => setSidebarOpen(false)}

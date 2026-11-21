@@ -11,6 +11,7 @@ export const getApiBaseUrl = () => {
   
 };
 
+
 const API_BASE_URL = getApiBaseUrl();
 
 export const getFullImageUrl = (url) => {
@@ -28,13 +29,34 @@ export const getFullImageUrl = (url) => {
 
 export const getFullPreviewUrl = (url) => {
   if (!url || typeof url !== 'string') return '';
-  // If running on live domain (coderharbor.com), rewrite any localhost preview URLs to https://api.coderharbor.com
-  if (typeof window !== 'undefined' && window.location.hostname && !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1')) {
-    if (url.includes('localhost') || url.includes('127.0.0.1')) {
-      return url.replace(/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?/, 'https://api.coderharbor.com');
+
+  // If already an absolute URL:
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    // In production on live domain, ensure preview requests ALWAYS target api.coderharbor.com
+    // so they never hit the CodeHarbor frontend SPA fallback!
+    if (typeof window !== 'undefined' && window.location.hostname && !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1')) {
+      if (url.includes('coderharbor.com') && !url.includes('api.coderharbor.com')) {
+        return url.replace('//coderharbor.com', '//api.coderharbor.com');
+      }
+      if (url.includes('localhost') || url.includes('127.0.0.1')) {
+        return url.replace(/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?/, 'https://api.coderharbor.com');
+      }
     }
+    return url;
   }
-  return url;
+
+  // If relative path (e.g. /previews/..., /api/preview/..., /api/proxy/...)
+  const cleanPath = url.startsWith('/') ? url : `/${url}`;
+
+  // In production (live domain coderharbor.com), MUST route directly to BACKEND (https://api.coderharbor.com)
+  // so the iframe NEVER falls through to CodeHarbor's Nginx / React Router SPA fallback!
+  if (typeof window !== 'undefined' && window.location.hostname && !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1')) {
+    return `https://api.coderharbor.com${cleanPath}`;
+  }
+
+  // In local development, route to backend (or current API base)
+  const apiBase = getApiBaseUrl().replace(/\/api\/?$/, '');
+  return `${apiBase}${cleanPath}`;
 };
 
 export const getAuthToken = () => localStorage.getItem('coderharbor_token');
@@ -325,3 +347,72 @@ export const employeeAPI = {
       body: JSON.stringify(data),
     }),
 };
+
+// ─── SKILL-BASED CURRICULUM & TASK APIs ───────────────────────────────────────
+export const employeeCurriculumAPI = {
+  getMySkills: () => apiRequest('/employee/curriculum/skills'),
+  getSkillTasks: (skillSlug, level) =>
+    apiRequest(`/employee/curriculum/skills/${skillSlug}/tasks?level=${encodeURIComponent(level || 'BASIC')}`),
+  getTaskDetails: (taskId) => apiRequest(`/employee/curriculum/tasks/${taskId}`),
+  runCode: (taskId, data) =>
+    apiRequest(`/employee/curriculum/tasks/${taskId}/run`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  submitTask: (taskId, data) =>
+    apiRequest(`/employee/curriculum/tasks/${taskId}/submit`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+};
+
+export const adminCurriculumAPI = {
+  getSkills: () => apiRequest('/admin/curriculum/skills'),
+  createSkill: (data) =>
+    apiRequest('/admin/curriculum/skills', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  getTasks: (params = {}) => {
+    const q = new URLSearchParams(params).toString();
+    return apiRequest(`/admin/curriculum/tasks${q ? `?${q}` : ''}`);
+  },
+  createTask: (data) =>
+    apiRequest('/admin/curriculum/tasks', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  updateTask: (taskId, data) =>
+    apiRequest(`/admin/curriculum/tasks/${taskId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+  deleteTask: (taskId) =>
+    apiRequest(`/admin/curriculum/tasks/${taskId}`, {
+      method: 'DELETE',
+    }),
+  assignSkills: (employeeProfileId, skillIds) =>
+    apiRequest(`/admin/curriculum/employees/${employeeProfileId}/skills`, {
+      method: 'POST',
+      body: JSON.stringify({ skillIds }),
+    }),
+  getSubmissions: (params = {}) => {
+    const q = new URLSearchParams(params).toString();
+    return apiRequest(`/admin/curriculum/submissions${q ? `?${q}` : ''}`);
+  },
+  runSubmissionCode: (submissionId) =>
+    apiRequest(`/admin/curriculum/submissions/${submissionId}/run`, {
+      method: 'POST',
+    }),
+  reviewSubmission: (submissionId, data) =>
+    apiRequest(`/admin/curriculum/submissions/${submissionId}/review`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  getProgressMatrix: () => apiRequest('/admin/curriculum/progress-matrix'),
+  getStats: () => apiRequest('/admin/curriculum/stats'),
+};
+
+
+
+
