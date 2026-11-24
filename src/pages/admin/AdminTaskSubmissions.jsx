@@ -22,9 +22,11 @@ export const AdminTaskSubmissions = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [actionSuccess, setActionSuccess] = useState('');
+  const [actionError, setActionError] = useState('');
 
   // Review Modal State
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [reviewError, setReviewError] = useState('');
   const [selectedSub, setSelectedSub] = useState(null);
   const [adminComment, setAdminComment] = useState('');
   const [running, setRunning] = useState(false);
@@ -55,6 +57,7 @@ export const AdminTaskSubmissions = () => {
   const openReviewModal = (sub) => {
     setSelectedSub(sub);
     setAdminComment(sub.adminComment || '');
+    setReviewError('');
     setRunResult(
       sub.executionOutput
         ? { stdout: sub.executionOutput, stderr: '', executionTimeMs: 0, success: true }
@@ -67,6 +70,7 @@ export const AdminTaskSubmissions = () => {
     if (!selectedSub) return;
     try {
       setRunning(true);
+      setReviewError('');
       setRunResult(null);
       const res = await adminCurriculumAPI.runSubmissionCode(selectedSub.id);
       if (res.success) {
@@ -93,8 +97,9 @@ export const AdminTaskSubmissions = () => {
 
   const handleReviewAction = async (action) => {
     if (!selectedSub) return;
+    setReviewError('');
     if (action === 'REJECT' && !adminComment.trim()) {
-      alert('Please provide a correction comment when rejecting a submission.');
+      setReviewError('Please provide a correction comment when rejecting a submission.');
       return;
     }
 
@@ -111,7 +116,7 @@ export const AdminTaskSubmissions = () => {
         fetchSubmissions();
       }
     } catch (err) {
-      alert(err.message || 'Failed to process review.');
+      setReviewError(err.message || 'Failed to process review.');
     } finally {
       setSubmittingReview(false);
     }
@@ -162,6 +167,18 @@ export const AdminTaskSubmissions = () => {
             <span>{actionSuccess}</span>
           </div>
           <button onClick={() => setActionSuccess('')} className="text-slate-400 hover:text-white">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {actionError && (
+        <div className="p-4 bg-rose-950/40 border border-rose-600/60 rounded-2xl text-rose-300 text-xs flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-rose-400" />
+            <span>{actionError}</span>
+          </div>
+          <button onClick={() => setActionError('')} className="text-slate-400 hover:text-white">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -294,6 +311,13 @@ export const AdminTaskSubmissions = () => {
                 <X className="w-5 h-5" />
               </button>
             </div>
+
+            {reviewError && (
+              <div className="p-3 bg-rose-950/40 border border-rose-600/60 rounded-xl text-rose-300 text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                <span>{reviewError}</span>
+              </div>
+            )}
 
             {/* Task Instructions & Expected Output Preview */}
             <div className="p-3.5 rounded-2xl bg-[#070A12] border border-slate-800 text-xs space-y-2">

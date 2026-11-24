@@ -20,9 +20,13 @@ export const AdminTasks = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [actionSuccess, setActionSuccess] = useState('');
+  const [actionError, setActionError] = useState('');
+  const [taskToDelete, setTaskToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Create Task Modal
   const [modalOpen, setModalOpen] = useState(false);
+  const [modalError, setModalError] = useState('');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [projectId, setProjectId] = useState('');
@@ -67,8 +71,9 @@ export const AdminTasks = () => {
 
   const handleCreateTask = async (e) => {
     e.preventDefault();
+    setModalError('');
     if (!title || !projectId || !employeeProfileId) {
-      alert('Please fill out all required fields.');
+      setModalError('Please fill out all required fields.');
       return;
     }
 
@@ -91,22 +96,28 @@ export const AdminTasks = () => {
         fetchData();
       }
     } catch (err) {
-      alert(err.message || 'Failed to create task.');
+      setModalError(err.message || 'Failed to create task.');
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Delete this task?')) return;
+  const handleConfirmDelete = async () => {
+    if (!taskToDelete) return;
     try {
-      const res = await adminPortalAPI.deleteTask(id);
+      setDeleting(true);
+      setActionError('');
+      const res = await adminPortalAPI.deleteTask(taskToDelete.id);
       if (res.success) {
-        setActionSuccess('Task deleted.');
+        setActionSuccess(`Task "${taskToDelete.title}" deleted.`);
+        setTaskToDelete(null);
         fetchData();
       }
     } catch (err) {
-      alert(err.message || 'Failed to delete task.');
+      setActionError(err.message || 'Failed to delete task.');
+      setTaskToDelete(null);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -115,7 +126,7 @@ export const AdminTasks = () => {
       await adminPortalAPI.updateTask(id, { status });
       fetchData();
     } catch (err) {
-      alert(err.message || 'Failed to update status.');
+      setActionError(err.message || 'Failed to update status.');
     }
   };
 
@@ -145,6 +156,13 @@ export const AdminTasks = () => {
         <div className="p-3.5 bg-emerald-950/40 border border-emerald-800 rounded-2xl text-emerald-300 text-xs flex items-center justify-between">
           <span>{actionSuccess}</span>
           <button onClick={() => setActionSuccess('')} className="text-emerald-400 font-bold">&times;</button>
+        </div>
+      )}
+
+      {actionError && (
+        <div className="p-3.5 bg-rose-950/40 border border-rose-800 rounded-2xl text-rose-300 text-xs flex items-center justify-between">
+          <span>{actionError}</span>
+          <button onClick={() => setActionError('')} className="text-rose-400 font-bold">&times;</button>
         </div>
       )}
 
@@ -224,7 +242,7 @@ export const AdminTasks = () => {
                     </td>
                     <td className="py-3.5 px-4 text-right">
                       <button
-                        onClick={() => handleDelete(t.id)}
+                        onClick={() => setTaskToDelete(t)}
                         className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-950/40"
                         title="Delete Task"
                       >
@@ -249,6 +267,13 @@ export const AdminTasks = () => {
                 <X className="w-5 h-5" />
               </button>
             </div>
+
+            {modalError && (
+              <div className="p-3 bg-rose-950/40 border border-rose-800 rounded-xl text-rose-300 text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{modalError}</span>
+              </div>
+            )}
 
             <form onSubmit={handleCreateTask} className="space-y-3.5 text-xs">
               <div>
@@ -346,6 +371,45 @@ export const AdminTasks = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Custom In-App Delete Confirmation Modal */}
+      {taskToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-sm bg-[#0F172A] border border-rose-500/40 rounded-3xl p-6 shadow-2xl space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 shrink-0">
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-black text-white">Delete Task?</h3>
+                <p className="text-xs text-slate-400 truncate max-w-[200px]">{taskToDelete.title}</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-300">
+              Are you sure you want to permanently delete this task? This action cannot be undone.
+            </p>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={() => setTaskToDelete(null)}
+                className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white text-xs font-bold transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={handleConfirmDelete}
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-rose-600 to-rose-700 hover:brightness-110 text-white text-xs font-bold transition flex items-center gap-2 shadow-lg disabled:opacity-50"
+              >
+                {deleting ? 'Deleting...' : 'Delete Task'}
+              </button>
+            </div>
           </div>
         </div>
       )}

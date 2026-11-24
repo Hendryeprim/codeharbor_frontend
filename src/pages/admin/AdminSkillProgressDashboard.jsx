@@ -23,9 +23,11 @@ export const AdminSkillProgressDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [actionSuccess, setActionSuccess] = useState('');
+  const [actionError, setActionError] = useState('');
 
   // Assign Skills Modal
   const [assignModalOpen, setAssignModalOpen] = useState(false);
+  const [assignError, setAssignError] = useState('');
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [selectedSkillIds, setSelectedSkillIds] = useState([]);
   const [savingSkills, setSavingSkills] = useState(false);
@@ -56,6 +58,7 @@ export const AdminSkillProgressDashboard = () => {
 
   const openAssignModal = (emp) => {
     setSelectedEmployee(emp);
+    setAssignError('');
     const currentIds = (emp.skills || []).map((s) => s.skillId);
     setSelectedSkillIds(currentIds);
     setAssignModalOpen(true);
@@ -71,6 +74,7 @@ export const AdminSkillProgressDashboard = () => {
 
   const handleSaveAssignedSkills = async () => {
     if (!selectedEmployee) return;
+    setAssignError('');
     try {
       setSavingSkills(true);
       const res = await adminCurriculumAPI.assignSkills(selectedEmployee.id, selectedSkillIds);
@@ -80,7 +84,7 @@ export const AdminSkillProgressDashboard = () => {
         fetchData();
       }
     } catch (err) {
-      alert(err.message || 'Failed to update skills.');
+      setAssignError(err.message || 'Failed to update skills.');
     } finally {
       setSavingSkills(false);
     }
@@ -127,6 +131,18 @@ export const AdminSkillProgressDashboard = () => {
             <span>{actionSuccess}</span>
           </div>
           <button onClick={() => setActionSuccess('')} className="text-slate-400 hover:text-white">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {actionError && (
+        <div className="p-4 bg-rose-950/40 border border-rose-600/60 rounded-2xl text-rose-300 text-xs flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-rose-400" />
+            <span>{actionError}</span>
+          </div>
+          <button onClick={() => setActionError('')} className="text-slate-400 hover:text-white">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -291,6 +307,13 @@ export const AdminSkillProgressDashboard = () => {
                 <X className="w-5 h-5" />
               </button>
             </div>
+
+            {assignError && (
+              <div className="p-3 bg-rose-950/40 border border-rose-600/60 rounded-xl text-rose-300 text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                <span>{assignError}</span>
+              </div>
+            )}
 
             <p className="text-xs text-slate-300">
               Select one or multiple skills to assign. The employee will only see tasks for checked skills:

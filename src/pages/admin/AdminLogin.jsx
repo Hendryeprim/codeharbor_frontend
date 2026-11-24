@@ -1,23 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { ShieldAlert, Mail, Lock, LogIn, AlertCircle, Eye, EyeOff, KeyRound } from 'lucide-react';
+import { ShieldAlert, Mail, Lock, LogIn, AlertCircle, Eye, EyeOff } from 'lucide-react';
 
 export const AdminLogin = () => {
-  const [email, setEmail] = useState('admin@coderharbor.com');
-  const [password, setPassword] = useState('CoderHarbor@2026#Admin');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const { login } = useAuth();
+  const { user, isAuthenticated, login } = useAuth();
   const navigate = useNavigate();
 
-  const handleQuickFill = (e, pwd = 'CoderHarbor@2026#Admin') => {
-    e.preventDefault();
-    setEmail('admin@coderharbor.com');
-    setPassword(pwd);
-  };
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      if (user.role === 'ADMIN') {
+        navigate('/admin/dashboard', { replace: true });
+      } else if (user.role === 'EMPLOYEE') {
+        navigate('/employee/dashboard', { replace: true });
+      } else {
+        navigate('/customer/dashboard', { replace: true });
+      }
+    }
+  }, [isAuthenticated, user, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -104,27 +110,6 @@ export const AdminLogin = () => {
             </div>
           </div>
 
-          {/* Quick Credential Helper */}
-          <div className="p-3 bg-purple-950/30 border border-purple-800/40 rounded-xl space-y-1.5">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-semibold text-purple-300 flex items-center gap-1">
-                <KeyRound className="w-3 h-3" /> Default Credentials:
-              </span>
-              <button
-                type="button"
-                onClick={(e) => handleQuickFill(e, 'CoderHarbor@2026#Admin')}
-                className="text-[10px] text-[#C084FC] hover:underline font-bold"
-              >
-                Auto-Fill
-              </button>
-            </div>
-            <p className="text-[10px] text-slate-400 font-mono">
-              Email: <span className="text-slate-200">admin@coderharbor.com</span>
-            </p>
-            <p className="text-[10px] text-slate-400 font-mono">
-              Password: <span className="text-slate-200">CoderHarbor@2026#Admin</span> or <span className="text-slate-200">Admin@123</span>
-            </p>
-          </div>
 
           <button
             type="submit"

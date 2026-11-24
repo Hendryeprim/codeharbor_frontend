@@ -39,6 +39,11 @@ export const EmployeeAdvancedProjectWorkspace = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [submitSuccess, setSubmitSuccess] = useState('');
+  const [submitError, setSubmitError] = useState('');
+  const [fileError, setFileError] = useState('');
+  const [fileToDelete, setFileToDelete] = useState(null);
+  const [newFileModalOpen, setNewFileModalOpen] = useState(false);
+  const [newFileName, setNewFileName] = useState('');
 
   useEffect(() => {
     const fetchTask = async () => {
@@ -77,27 +82,40 @@ export const EmployeeAdvancedProjectWorkspace = () => {
   };
 
   const handleAddNewFile = () => {
-    const name = prompt('Enter new file name (e.g. routes.py or config.json):');
-    if (!name) return;
-    const clean = name.trim().replace(/^[\/\\]+/, '');
+    setNewFileName('');
+    setFileError('');
+    setNewFileModalOpen(true);
+  };
+
+  const handleConfirmAddFile = (e) => {
+    e.preventDefault();
+    if (!newFileName.trim()) return;
+    const clean = newFileName.trim().replace(/^[\/\\]+/, '');
     if (files.some((f) => f.filename === clean)) {
-      alert('File with this name already exists.');
+      setFileError('File with this name already exists.');
       return;
     }
     setFiles((prev) => [...prev, { filename: clean, content: `# ${clean}\n` }]);
     setActiveFile(clean);
+    setNewFileModalOpen(false);
+    setNewFileName('');
+    setFileError('');
   };
 
   const handleDeleteFile = (fname) => {
     if (files.length <= 1) {
-      alert('Project must have at least one file.');
+      setFileError('Project must have at least one file.');
       return;
     }
-    if (confirm(`Delete ${fname}?`)) {
-      const remaining = files.filter((f) => f.filename !== fname);
-      setFiles(remaining);
-      setActiveFile(remaining[0].filename);
-    }
+    setFileToDelete(fname);
+  };
+
+  const confirmDeleteFile = () => {
+    if (!fileToDelete) return;
+    const remaining = files.filter((f) => f.filename !== fileToDelete);
+    setFiles(remaining);
+    setActiveFile(remaining[0].filename);
+    setFileToDelete(null);
   };
 
   const handleRunProject = async () => {
@@ -134,6 +152,7 @@ export const EmployeeAdvancedProjectWorkspace = () => {
     try {
       setSubmitting(true);
       setSubmitSuccess('');
+      setSubmitError('');
       const res = await employeeCurriculumAPI.submitTask(taskId, {
         projectFiles: files,
         githubRepoUrl: githubRepoUrl.trim() || null,
@@ -147,7 +166,7 @@ export const EmployeeAdvancedProjectWorkspace = () => {
         if (updated.success) setTask(updated.task);
       }
     } catch (err) {
-      alert(err.message || 'Failed to submit project.');
+      setSubmitError(err.message || 'Failed to submit project.');
     } finally {
       setSubmitting(false);
     }
@@ -213,9 +232,38 @@ export const EmployeeAdvancedProjectWorkspace = () => {
       </div>
 
       {submitSuccess && (
-        <div className="p-4 bg-emerald-950/40 border border-emerald-600/60 rounded-2xl text-emerald-300 text-xs flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
-          <span>{submitSuccess}</span>
+        <div className="p-4 bg-emerald-950/40 border border-emerald-600/60 rounded-2xl text-emerald-300 text-xs flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+            <span>{submitSuccess}</span>
+          </div>
+          <button onClick={() => setSubmitSuccess('')} className="text-slate-400 hover:text-white">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {submitError && (
+        <div className="p-4 bg-rose-950/40 border border-rose-600/60 rounded-2xl text-rose-300 text-xs flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+            <span>{submitError}</span>
+          </div>
+          <button onClick={() => setSubmitError('')} className="text-slate-400 hover:text-white">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {fileError && (
+        <div className="p-4 bg-amber-950/40 border border-amber-600/60 rounded-2xl text-amber-300 text-xs flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0 text-amber-400" />
+            <span>{fileError}</span>
+          </div>
+          <button onClick={() => setFileError('')} className="text-slate-400 hover:text-white">
+            <X className="w-4 h-4" />
+          </button>
         </div>
       )}
 
@@ -403,6 +451,91 @@ export const EmployeeAdvancedProjectWorkspace = () => {
           </div>
         </div>
       </div>
+      {/* New File Modal */}
+      {newFileModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-sm bg-[#0F172A] border border-cyan-500/40 rounded-3xl p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+              <h3 className="text-sm font-black text-white flex items-center gap-2">
+                <FileCode2 className="w-4 h-4 text-cyan-400" />
+                <span>Create New Project File</span>
+              </h3>
+              <button onClick={() => setNewFileModalOpen(false)} className="text-slate-400 hover:text-white">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleConfirmAddFile} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1">File Name</label>
+                <input
+                  type="text"
+                  autoFocus
+                  value={newFileName}
+                  onChange={(e) => setNewFileName(e.target.value)}
+                  placeholder="e.g. routes.py or config.json"
+                  required
+                  className="w-full p-2.5 rounded-xl bg-[#070A12] border border-slate-700 text-white font-mono text-xs focus:outline-none focus:border-cyan-400"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setNewFileModalOpen(false)}
+                  className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white text-xs font-bold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:brightness-110 text-white text-xs font-bold shadow-lg"
+                >
+                  Create File
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete File Confirmation Modal */}
+      {fileToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-sm bg-[#0F172A] border border-rose-500/40 rounded-3xl p-6 shadow-2xl space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 shrink-0">
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-black text-white">Delete File?</h3>
+                <p className="text-xs text-slate-400 font-mono">{fileToDelete}</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-300">
+              Are you sure you want to permanently delete this file from your project workspace?
+            </p>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setFileToDelete(null)}
+                className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white text-xs font-bold"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDeleteFile}
+                className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold"
+              >
+                Delete File
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

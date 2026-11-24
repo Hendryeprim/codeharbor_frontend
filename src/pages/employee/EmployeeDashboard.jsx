@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { employeeAPI, employeeCurriculumAPI } from '../../services/api';
 import { LivePreviewModal } from '../../components/common/LivePreviewModal';
+import { UploadProjectModal } from '../../components/employee/UploadProjectModal';
 import {
   FolderGit2,
   Clock,

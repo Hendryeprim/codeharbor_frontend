@@ -16,6 +16,14 @@ import {
   Filter,
 } from 'lucide-react';
 
+const DEFAULT_SKILLS = [
+  { id: 'python', name: 'Python', slug: 'python' },
+  { id: 'java', name: 'Java', slug: 'java' },
+  { id: 'sql', name: 'SQL', slug: 'sql' },
+  { id: 'data-analysis', name: 'Data Analysis', slug: 'data-analysis' },
+  { id: 'software-testing', name: 'Software Testing', slug: 'software-testing' },
+];
+
 export const AdminSkillCurriculum = () => {
   const [skills, setSkills] = useState([]);
   const [selectedSkillId, setSelectedSkillId] = useState('ALL');
@@ -24,9 +32,16 @@ export const AdminSkillCurriculum = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [actionSuccess, setActionSuccess] = useState('');
+  const [actionError, setActionError] = useState('');
+
+  // Delete Confirmation Modal State
+  const [taskToDelete, setTaskToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Create / Edit Modal State
   const [modalOpen, setModalOpen] = useState(false);
+  const [modalError, setModalError] = useState('');
+  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState(null);
   const [skillId, setSkillId] = useState('');
   const [level, setLevel] = useState('BASIC');
@@ -41,8 +56,13 @@ export const AdminSkillCurriculum = () => {
   const [status, setStatus] = useState('ACTIVE');
   const [submitting, setSubmitting] = useState(false);
 
+  // Clear All Tasks Modal State
+  const [clearModalOpen, setClearModalOpen] = useState(false);
+  const [clearing, setClearing] = useState(false);
+
   // New Skill Modal State
   const [skillModalOpen, setSkillModalOpen] = useState(false);
+  const [skillModalError, setSkillModalError] = useState('');
   const [newSkillName, setNewSkillName] = useState('');
   const [newSkillDesc, setNewSkillDesc] = useState('');
 
@@ -71,9 +91,12 @@ export const AdminSkillCurriculum = () => {
     fetchData();
   }, [selectedSkillId, selectedLevel]);
 
+  const effectiveSkills = skills && skills.length > 0 ? skills : DEFAULT_SKILLS;
+
   const openCreateModal = () => {
     setEditingTaskId(null);
-    setSkillId(skills[0]?.id || '');
+    const defaultSkill = (skills && skills.length > 0) ? skills[0] : DEFAULT_SKILLS[0];
+    setSkillId(defaultSkill.id);
     setLevel('BASIC');
     setTitle('');
     setDescription('');
@@ -84,6 +107,8 @@ export const AdminSkillCurriculum = () => {
     setGithubBranch('main');
     setInitialCode('');
     setStatus('ACTIVE');
+    setShowAdvancedOptions(false);
+    setModalError('');
     setModalOpen(true);
   };
 
@@ -100,13 +125,19 @@ export const AdminSkillCurriculum = () => {
     setGithubBranch(task.githubBranch || 'main');
     setInitialCode(task.initialCode || '');
     setStatus(task.status);
+    setShowAdvancedOptions(Boolean(task.initialCode || task.expectedOutput));
+    setModalError('');
     setModalOpen(true);
   };
 
   const handleSaveTask = async (e) => {
     e.preventDefault();
-    if (!skillId || !title || !description || !instructions) {
-      alert('Please fill out all required fields.');
+    setModalError('');
+    const finalInstr = (instructions || description || '').trim();
+    const finalDesc = (description || instructions || finalInstr).trim();
+
+    if (!skillId || !title.trim() || !finalInstr) {
+      setModalError('Please fill out Target Skill, Task Title, and Instructions (*).');
       return;
     }
 
@@ -115,14 +146,14 @@ export const AdminSkillCurriculum = () => {
       const payload = {
         skillId,
         level,
-        title,
-        description,
-        instructions,
-        expectedOutput,
+        title: title.trim(),
+        description: finalDesc,
+        instructions: finalInstr,
+        expectedOutput: expectedOutput.trim() || null,
         difficulty,
-        githubRepoUrl,
-        githubBranch,
-        initialCode,
+        githubRepoUrl: githubRepoUrl.trim() || null,
+        githubBranch: githubBranch.trim() || 'main',
+        initialCode: initialCode.trim() || null,
         status,
       };
 
@@ -137,27 +168,54 @@ export const AdminSkillCurriculum = () => {
       setModalOpen(false);
       fetchData();
     } catch (err) {
-      alert(err.message || 'Failed to save task.');
+      setModalError(err.message || 'Failed to save task.');
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleDeleteTask = async (id) => {
-    if (confirm('Are you sure you want to delete this task?')) {
-      try {
-        await adminCurriculumAPI.deleteTask(id);
-        setActionSuccess('Task deleted successfully.');
+  const handleClearAllTasks = async () => {
+    try {
+      setClearing(true);
+      setActionError('');
+      const res = await adminCurriculumAPI.clearAllTasks();
+      if (res.success) {
+        setActionSuccess(res.message || 'All sample tasks cleared. Skills are now empty.');
+        setClearModalOpen(false);
         fetchData();
-      } catch (err) {
-        alert(err.message || 'Failed to delete task.');
       }
+    } catch (err) {
+      setActionError(err.message || 'Failed to clear sample tasks.');
+      setClearModalOpen(false);
+    } finally {
+      setClearing(false);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!taskToDelete) return;
+    try {
+      setDeleting(true);
+      setActionError('');
+      await adminCurriculumAPI.deleteTask(taskToDelete.id);
+      setActionSuccess(`Task "${taskToDelete.title}" deleted successfully.`);
+      setTaskToDelete(null);
+      fetchData();
+    } catch (err) {
+      setActionError(err.message || 'Failed to delete task.');
+      setTaskToDelete(null);
+    } finally {
+      setDeleting(false);
     }
   };
 
   const handleCreateNewSkill = async (e) => {
     e.preventDefault();
-    if (!newSkillName.trim()) return;
+    setSkillModalError('');
+    if (!newSkillName.trim()) {
+      setSkillModalError('Please enter a skill name.');
+      return;
+    }
 
     try {
       await adminCurriculumAPI.createSkill({
@@ -170,7 +228,7 @@ export const AdminSkillCurriculum = () => {
       setActionSuccess('New Skill added to curriculum catalog.');
       fetchData();
     } catch (err) {
-      alert(err.message || 'Failed to create skill.');
+      setSkillModalError(err.message || 'Failed to create skill.');
     }
   };
 
@@ -188,7 +246,17 @@ export const AdminSkillCurriculum = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2 self-start sm:self-auto">
+        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+          {tasks.length > 0 && (
+            <button
+              onClick={() => setClearModalOpen(true)}
+              className="px-3.5 py-2 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 hover:bg-rose-500/20 hover:text-white font-bold text-xs flex items-center gap-1.5 transition"
+              title="Remove sample seeded tasks and start fresh"
+            >
+              <Trash2 className="w-4 h-4 text-rose-400" />
+              <span>Clear Sample Tasks</span>
+            </button>
+          )}
           <button
             onClick={() => setSkillModalOpen(true)}
             className="px-3.5 py-2 rounded-xl bg-slate-800 text-slate-200 hover:text-white font-bold text-xs flex items-center gap-1.5 transition"
@@ -209,10 +277,22 @@ export const AdminSkillCurriculum = () => {
       {actionSuccess && (
         <div className="p-4 bg-emerald-950/40 border border-emerald-600/60 rounded-2xl text-emerald-300 text-xs flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
             <span>{actionSuccess}</span>
           </div>
           <button onClick={() => setActionSuccess('')} className="text-slate-400 hover:text-white">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {actionError && (
+        <div className="p-4 bg-rose-950/40 border border-rose-600/60 rounded-2xl text-rose-300 text-xs flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+            <span>{actionError}</span>
+          </div>
+          <button onClick={() => setActionError('')} className="text-slate-400 hover:text-white">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -374,8 +454,8 @@ export const AdminSkillCurriculum = () => {
                         <Edit className="w-3.5 h-3.5" />
                       </button>
                       <button
-                        onClick={() => handleDeleteTask(task.id)}
-                        className="p-1.5 rounded-lg bg-slate-800 hover:bg-rose-950 text-slate-300 hover:text-rose-400"
+                        onClick={() => setTaskToDelete(task)}
+                        className="p-1.5 rounded-lg bg-slate-800 hover:bg-rose-950 text-slate-300 hover:text-rose-400 transition"
                         title="Delete Task"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -389,167 +469,255 @@ export const AdminSkillCurriculum = () => {
         </div>
       )}
 
-      {/* Create / Edit Task Modal */}
+      {/* Create / Edit Task Modal - Pinned Header & Pinned Footer */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
-          <div className="w-full max-w-2xl bg-[#0F172A] border border-[#334155] rounded-3xl p-6 shadow-2xl my-8 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-              <h2 className="text-lg font-black text-white">
-                {editingTaskId ? 'Edit Curriculum Task' : 'Create New Curriculum Task'}
-              </h2>
-              <button onClick={() => setModalOpen(false)} className="text-slate-400 hover:text-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/85 backdrop-blur-md overflow-hidden">
+          <div className="w-full max-w-lg bg-[#0F172A] border border-[#334155] rounded-2xl sm:rounded-3xl shadow-2xl flex flex-col max-h-[85vh] sm:max-h-[88vh] overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            {/* Pinned Modal Header (Never cut off at top) */}
+            <div className="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between shrink-0 bg-[#0F172A]">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 shrink-0">
+                  <Code2 className="w-4 h-4" />
+                </div>
+                <div>
+                  <h2 className="text-base font-black text-white leading-tight">
+                    {editingTaskId ? 'Edit Curriculum Task' : 'Create Curriculum Task'}
+                  </h2>
+                  <p className="text-[11px] text-slate-400">Add or edit skill curriculum deliverable</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setModalOpen(false)}
+                className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition shrink-0"
+                title="Close"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleSaveTask} className="space-y-4 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-slate-400 font-bold mb-1">Target Skill *</label>
-                  <select
-                    value={skillId}
-                    onChange={(e) => setSkillId(e.target.value)}
-                    required
-                    className="w-full p-2.5 rounded-xl bg-[#070A12] border border-slate-700 text-white focus:outline-none focus:border-purple-400"
-                  >
-                    {skills.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+            {modalError && (
+              <div className="mx-4 sm:mx-5 mt-3 p-3 bg-rose-950/50 border border-rose-600/60 rounded-xl text-rose-300 text-xs flex items-center gap-2 shrink-0">
+                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                <span>{modalError}</span>
+              </div>
+            )}
 
-                <div>
-                  <label className="block text-slate-400 font-bold mb-1">Learning Level *</label>
-                  <select
-                    value={level}
-                    onChange={(e) => setLevel(e.target.value)}
-                    required
-                    className="w-full p-2.5 rounded-xl bg-[#070A12] border border-slate-700 text-white focus:outline-none focus:border-purple-400 font-mono"
-                  >
-                    <option value="BASIC">Basic (Foundational)</option>
-                    <option value="INTERMEDIATE">Intermediate (OOP / Logic)</option>
-                    <option value="ADVANCED">Advanced (Full Project Deliverable)</option>
-                  </select>
+            {/* Scrollable Form Body */}
+            <form
+              id="curriculum-task-form"
+              onSubmit={handleSaveTask}
+              className="p-4 sm:p-5 space-y-3.5 text-xs overflow-y-auto flex-1 overscroll-contain"
+            >
+              {/* Skill Selector */}
+              <div>
+                <label className="block text-slate-300 font-bold mb-1">
+                  Target Skill <span className="text-rose-400">*</span>
+                </label>
+                <select
+                  value={skillId || effectiveSkills[0]?.id || ''}
+                  onChange={(e) => setSkillId(e.target.value)}
+                  required
+                  className="w-full p-2.5 rounded-xl bg-[#070A12] border border-slate-700 text-white focus:outline-none focus:border-purple-400 text-xs font-bold cursor-pointer"
+                >
+                  {effectiveSkills.map((s) => (
+                    <option key={s.id} value={s.id} className="bg-[#0F172A] text-white py-1">
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Learning Level (3 Pills) */}
+              <div>
+                <label className="block text-slate-300 font-bold mb-1.5">
+                  Learning Level <span className="text-rose-400">*</span>
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { id: 'BASIC', label: 'Basic' },
+                    { id: 'INTERMEDIATE', label: 'Intermediate' },
+                    { id: 'ADVANCED', label: 'Advanced' },
+                  ].map((lvl) => (
+                    <button
+                      type="button"
+                      key={lvl.id}
+                      onClick={() => setLevel(lvl.id)}
+                      className={`py-2 px-2 rounded-xl text-xs font-bold transition text-center ${
+                        level === lvl.id
+                          ? lvl.id === 'BASIC'
+                            ? 'bg-cyan-500/20 text-[#00FFC6] border border-[#00FFC6]/60 shadow-sm'
+                            : lvl.id === 'INTERMEDIATE'
+                            ? 'bg-amber-500/20 text-amber-400 border border-amber-500/60 shadow-sm'
+                            : 'bg-purple-500/20 text-purple-300 border border-purple-500/60 shadow-sm'
+                          : 'bg-[#070A12] border border-slate-800 text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      {lvl.label}
+                    </button>
+                  ))}
                 </div>
               </div>
 
+              {/* Task Title */}
               <div>
-                <label className="block text-slate-400 font-bold mb-1">Task Title *</label>
+                <label className="block text-slate-300 font-bold mb-1">
+                  Task Title <span className="text-rose-400">*</span>
+                </label>
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="e.g. Python Calculator or String Reverser"
                   required
-                  className="w-full p-2.5 rounded-xl bg-[#070A12] border border-slate-700 text-white focus:outline-none focus:border-purple-400"
+                  className="w-full p-2.5 rounded-xl bg-[#070A12] border border-slate-700 text-white focus:outline-none focus:border-purple-400 text-xs"
                 />
               </div>
 
+              {/* Task Instructions / Requirements */}
               <div>
-                <label className="block text-slate-400 font-bold mb-1">Description *</label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Brief overview of what the task accomplishes..."
-                  rows="2"
-                  required
-                  className="w-full p-2.5 rounded-xl bg-[#070A12] border border-slate-700 text-white focus:outline-none focus:border-purple-400"
-                />
-              </div>
-
-              <div>
-                <label className="block text-slate-400 font-bold mb-1">Instructions *</label>
+                <label className="block text-slate-300 font-bold mb-1">
+                  Task Instructions / Requirements <span className="text-rose-400">*</span>
+                </label>
                 <textarea
                   value={instructions}
-                  onChange={(e) => setInstructions(e.target.value)}
-                  placeholder="Detailed step-by-step instructions for the employee..."
+                  onChange={(e) => {
+                    setInstructions(e.target.value);
+                    setDescription(e.target.value);
+                  }}
+                  placeholder="Explain what the employee should build, write, or calculate..."
                   rows="3"
                   required
+                  className="w-full p-2.5 rounded-xl bg-[#070A12] border border-slate-700 text-white focus:outline-none focus:border-purple-400 leading-relaxed text-xs"
+                />
+              </div>
+
+              {/* GitHub Repository URL */}
+              <div>
+                <label className="block text-slate-300 font-bold mb-1 flex items-center justify-between">
+                  <span className="flex items-center gap-1.5">
+                    <FolderGit2 className="w-3.5 h-3.5 text-cyan-400" />
+                    <span>GitHub Repository URL (Optional)</span>
+                  </span>
+                  <span className="text-[10px] text-slate-500 font-normal">For cloning or project code</span>
+                </label>
+                <input
+                  type="text"
+                  value={githubRepoUrl}
+                  onChange={(e) => setGithubRepoUrl(e.target.value)}
+                  placeholder="https://github.com/organization/repo.git"
                   className="w-full p-2.5 rounded-xl bg-[#070A12] border border-slate-700 text-white focus:outline-none focus:border-purple-400 font-mono text-xs"
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Difficulty & Status Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                 <div>
-                  <label className="block text-slate-400 font-bold mb-1">Expected Output (Optional)</label>
-                  <textarea
-                    value={expectedOutput}
-                    onChange={(e) => setExpectedOutput(e.target.value)}
-                    placeholder="Terminal output string expected..."
-                    rows="2"
-                    className="w-full p-2.5 rounded-xl bg-[#070A12] border border-slate-700 text-emerald-400 focus:outline-none focus:border-purple-400 font-mono text-[11px]"
-                  />
+                  <label className="block text-slate-300 font-bold mb-1">Difficulty</label>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {['EASY', 'MEDIUM', 'HARD'].map((diff) => (
+                      <button
+                        type="button"
+                        key={diff}
+                        onClick={() => setDifficulty(diff)}
+                        className={`py-1.5 rounded-lg text-[11px] font-mono font-bold transition text-center ${
+                          difficulty === diff
+                            ? diff === 'EASY'
+                              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50'
+                              : diff === 'MEDIUM'
+                              ? 'bg-amber-500/20 text-amber-400 border border-amber-500/50'
+                              : 'bg-rose-500/20 text-rose-400 border border-rose-500/50'
+                            : 'bg-[#070A12] border border-slate-800 text-slate-500 hover:text-white'
+                        }`}
+                      >
+                        {diff}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 <div>
-                  <label className="block text-slate-400 font-bold mb-1">Difficulty</label>
-                  <select
-                    value={difficulty}
-                    onChange={(e) => setDifficulty(e.target.value)}
-                    className="w-full p-2.5 rounded-xl bg-[#070A12] border border-slate-700 text-white focus:outline-none focus:border-purple-400"
-                  >
-                    <option value="EASY">Easy</option>
-                    <option value="MEDIUM">Medium</option>
-                    <option value="HARD">Hard</option>
-                  </select>
+                  <label className="block text-slate-300 font-bold mb-1">Status</label>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {[
+                      { id: 'ACTIVE', label: 'Active' },
+                      { id: 'INACTIVE', label: 'Inactive' },
+                    ].map((st) => (
+                      <button
+                        type="button"
+                        key={st.id}
+                        onClick={() => setStatus(st.id)}
+                        className={`py-1.5 rounded-lg text-[11px] font-mono font-bold transition text-center ${
+                          status === st.id
+                            ? st.id === 'ACTIVE'
+                              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50'
+                              : 'bg-slate-700 text-slate-200 border border-slate-600'
+                            : 'bg-[#070A12] border border-slate-800 text-slate-500 hover:text-white'
+                        }`}
+                      >
+                        {st.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-slate-400 font-bold mb-1">GitHub Repository URL (Optional)</label>
-                  <input
-                    type="text"
-                    value={githubRepoUrl}
-                    onChange={(e) => setGithubRepoUrl(e.target.value)}
-                    placeholder="https://github.com/org/repo.git"
-                    className="w-full p-2.5 rounded-xl bg-[#070A12] border border-slate-700 text-white focus:outline-none focus:border-purple-400 font-mono text-xs"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-slate-400 font-bold mb-1">Status</label>
-                  <select
-                    value={status}
-                    onChange={(e) => setStatus(e.target.value)}
-                    className="w-full p-2.5 rounded-xl bg-[#070A12] border border-slate-700 text-white focus:outline-none focus:border-purple-400"
-                  >
-                    <option value="ACTIVE">Active (Available to Employees)</option>
-                    <option value="INACTIVE">Inactive (Hidden)</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-slate-400 font-bold mb-1">Initial Boilerplate Code (Optional)</label>
-                <textarea
-                  value={initialCode}
-                  onChange={(e) => setInitialCode(e.target.value)}
-                  placeholder="# Starting template code provided in the in-browser code editor..."
-                  rows="4"
-                  className="w-full p-2.5 rounded-xl bg-[#070A12] border border-slate-700 text-cyan-300 focus:outline-none focus:border-purple-400 font-mono text-[11px]"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+              {/* Collapsible Advanced Section */}
+              <div className="pt-2 border-t border-slate-800/80">
                 <button
                   type="button"
-                  onClick={() => setModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white"
+                  onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
+                  className="text-slate-400 hover:text-cyan-400 text-xs font-bold flex items-center gap-1.5 transition"
                 >
-                  Cancel
+                  <span>{showAdvancedOptions ? '− Hide' : '+ Optional'} Starter Code & Expected Output</span>
                 </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-[#A855F7] to-[#C084FC] text-white font-black shadow-purple-glow hover:brightness-110 disabled:opacity-50"
-                >
-                  {submitting ? 'Saving...' : editingTaskId ? 'Update Task' : 'Create Task'}
-                </button>
+
+                {showAdvancedOptions && (
+                  <div className="mt-3 space-y-3 p-3 rounded-2xl bg-[#070A12] border border-slate-800 animate-in fade-in">
+                    <div>
+                      <label className="block text-slate-400 font-bold mb-1 text-[11px]">Expected Terminal Output (Optional)</label>
+                      <textarea
+                        value={expectedOutput}
+                        onChange={(e) => setExpectedOutput(e.target.value)}
+                        placeholder="Terminal output expected from code..."
+                        rows="2"
+                        className="w-full p-2 rounded-xl bg-[#0B0F1A] border border-slate-800 text-emerald-400 font-mono text-[11px] focus:outline-none focus:border-purple-400"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-slate-400 font-bold mb-1 text-[11px]">Starter Template Code (Optional)</label>
+                      <textarea
+                        value={initialCode}
+                        onChange={(e) => setInitialCode(e.target.value)}
+                        placeholder="# Starting boilerplate code in editor..."
+                        rows="3"
+                        className="w-full p-2 rounded-xl bg-[#0B0F1A] border border-slate-800 text-cyan-300 font-mono text-[11px] focus:outline-none focus:border-purple-400"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             </form>
+
+            {/* Pinned Modal Footer (Never cut off at bottom) */}
+            <div className="p-4 sm:p-5 border-t border-slate-800 flex items-center justify-end gap-3 shrink-0 bg-[#0F172A]">
+              <button
+                type="button"
+                onClick={() => setModalOpen(false)}
+                className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-bold text-xs transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                form="curriculum-task-form"
+                disabled={submitting}
+                className="px-5 py-2 rounded-xl bg-gradient-to-r from-[#A855F7] to-[#C084FC] text-white font-black text-xs shadow-purple-glow hover:brightness-110 disabled:opacity-50 transition"
+              >
+                {submitting ? 'Saving...' : editingTaskId ? 'Update Task' : 'Create Task'}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -564,6 +732,14 @@ export const AdminSkillCurriculum = () => {
                 <X className="w-5 h-5" />
               </button>
             </div>
+
+            {skillModalError && (
+              <div className="p-3 bg-rose-950/40 border border-rose-600/60 rounded-xl text-rose-300 text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                <span>{skillModalError}</span>
+              </div>
+            )}
+
             <form onSubmit={handleCreateNewSkill} className="space-y-4 text-xs">
               <div>
                 <label className="block text-slate-400 font-bold mb-1">Skill Name *</label>
@@ -602,6 +778,119 @@ export const AdminSkillCurriculum = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Custom In-App Delete Confirmation Modal */}
+      {taskToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-md bg-[#0F172A] border border-rose-500/40 rounded-3xl p-6 shadow-2xl space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 shrink-0">
+                <Trash2 className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-white">Delete Curriculum Task</h3>
+                <p className="text-xs text-slate-400">This action is permanent and cannot be undone.</p>
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-[#070A12] border border-slate-800 space-y-1.5">
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="font-bold text-slate-400">Skill / Level:</span>
+                <span className="font-mono text-purple-400 font-bold">
+                  {taskToDelete.skill?.name || 'Skill'} • {taskToDelete.level}
+                </span>
+              </div>
+              <p className="text-xs font-bold text-white line-clamp-2">{taskToDelete.title}</p>
+              <p className="text-[11px] text-slate-400 line-clamp-2">{taskToDelete.description}</p>
+            </div>
+
+            <p className="text-xs text-rose-300/90 bg-rose-500/10 border border-rose-500/20 rounded-xl p-3">
+              Warning: Deleting this task will also remove all associated employee progress and submission records.
+            </p>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={() => setTaskToDelete(null)}
+                className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white text-xs font-bold transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={handleConfirmDelete}
+                className="px-5 py-2 rounded-xl bg-gradient-to-r from-rose-600 to-rose-700 hover:brightness-110 text-white text-xs font-bold transition flex items-center gap-2 shadow-lg shadow-rose-900/40 disabled:opacity-50"
+              >
+                {deleting ? (
+                  <>
+                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    <span>Delete Task</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Custom In-App Clear All Sample Tasks Confirmation Modal */}
+      {clearModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-md bg-[#0F172A] border border-rose-500/40 rounded-3xl p-6 shadow-2xl space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 shrink-0">
+                <Trash2 className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-white">Clear All Sample Tasks?</h3>
+                <p className="text-xs text-slate-400">Reset skills to 0 tasks and clean slate</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-300 leading-relaxed">
+              This will permanently remove all pre-seeded sample tasks and employee submissions. All supported skills (Python, Java, SQL, Data Analysis, Software Testing) will remain completely empty with <strong>0 tasks</strong>, ready for you to create your own tasks.
+            </p>
+
+            <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-300 text-xs">
+              Are you sure? Only the tasks you manually create after this will appear inside the platform.
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                disabled={clearing}
+                onClick={() => setClearModalOpen(false)}
+                className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white text-xs font-bold transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={clearing}
+                onClick={handleClearAllTasks}
+                className="px-5 py-2 rounded-xl bg-gradient-to-r from-rose-600 to-rose-700 hover:brightness-110 text-white text-xs font-bold transition flex items-center gap-2 shadow-lg shadow-rose-900/40 disabled:opacity-50"
+              >
+                {clearing ? (
+                  <>
+                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>Clearing...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    <span>Clear All Tasks</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}

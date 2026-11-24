@@ -29,6 +29,8 @@ export const EmployeeCodingWorkspace = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [submitSuccess, setSubmitSuccess] = useState('');
+  const [submitError, setSubmitError] = useState('');
+  const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
 
   useEffect(() => {
     const fetchTask = async () => {
@@ -64,7 +66,13 @@ export const EmployeeCodingWorkspace = () => {
 
   const handleRunCode = async () => {
     if (!code || !code.trim()) {
-      alert('Please write code before running.');
+      setExecutionResult({
+        stdout: '',
+        stderr: 'Please write code in the editor before running.',
+        executionTimeMs: 0,
+        exitCode: 1,
+        success: false,
+      });
       return;
     }
 
@@ -95,8 +103,9 @@ export const EmployeeCodingWorkspace = () => {
   };
 
   const handleSubmitTask = async () => {
+    setSubmitError('');
     if (!code || !code.trim()) {
-      alert('Please write and test your code before submitting.');
+      setSubmitError('Please write and test your code before submitting.');
       return;
     }
 
@@ -115,17 +124,16 @@ export const EmployeeCodingWorkspace = () => {
         if (updated.success) setTask(updated.task);
       }
     } catch (err) {
-      alert(err.message || 'Failed to submit task.');
+      setSubmitError(err.message || 'Failed to submit task.');
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleResetCode = () => {
-    if (confirm('Reset editor to initial template code?')) {
-      setCode(task?.initialCode || '');
-      setExecutionResult(null);
-    }
+    setCode(task?.initialCode || '');
+    setExecutionResult(null);
+    setResetConfirmOpen(false);
   };
 
   if (loading) {
@@ -206,9 +214,26 @@ export const EmployeeCodingWorkspace = () => {
 
       {/* Submission Status Alerts */}
       {submitSuccess && (
-        <div className="p-4 bg-emerald-950/40 border border-emerald-600/60 rounded-2xl text-emerald-300 text-xs flex items-center gap-2 shadow-lg">
-          <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
-          <span>{submitSuccess}</span>
+        <div className="p-4 bg-emerald-950/40 border border-emerald-600/60 rounded-2xl text-emerald-300 text-xs flex items-center justify-between shadow-lg">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+            <span>{submitSuccess}</span>
+          </div>
+          <button onClick={() => setSubmitSuccess('')} className="text-slate-400 hover:text-white">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {submitError && (
+        <div className="p-4 bg-rose-950/40 border border-rose-600/60 rounded-2xl text-rose-300 text-xs flex items-center justify-between shadow-lg">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+            <span>{submitError}</span>
+          </div>
+          <button onClick={() => setSubmitError('')} className="text-slate-400 hover:text-white">
+            <X className="w-4 h-4" />
+          </button>
         </div>
       )}
 
@@ -298,7 +323,7 @@ export const EmployeeCodingWorkspace = () => {
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={handleResetCode}
+                  onClick={() => setResetConfirmOpen(true)}
                   title="Reset to template"
                   className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 text-xs flex items-center gap-1 transition"
                 >
@@ -408,6 +433,43 @@ export const EmployeeCodingWorkspace = () => {
           </div>
         </div>
       </div>
+      {/* Reset Confirmation Modal */}
+      {resetConfirmOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-sm bg-[#0F172A] border border-amber-500/40 rounded-3xl p-6 shadow-2xl space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
+                <RotateCcw className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-black text-white">Reset Editor Code?</h3>
+                <p className="text-xs text-slate-400">Your current changes will be reverted.</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-300">
+              Are you sure you want to revert your code to the initial starter template?
+            </p>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setResetConfirmOpen(false)}
+                className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white text-xs font-bold transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleResetCode}
+                className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold transition shadow-lg"
+              >
+                Reset Code
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

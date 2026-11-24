@@ -391,6 +391,10 @@ export const adminCurriculumAPI = {
     apiRequest(`/admin/curriculum/tasks/${taskId}`, {
       method: 'DELETE',
     }),
+  clearAllTasks: () =>
+    apiRequest('/admin/curriculum/tasks/clear-all', {
+      method: 'POST',
+    }),
   assignSkills: (employeeProfileId, skillIds) =>
     apiRequest(`/admin/curriculum/employees/${employeeProfileId}/skills`, {
       method: 'POST',
@@ -412,7 +416,3 @@ export const adminCurriculumAPI = {
   getProgressMatrix: () => apiRequest('/admin/curriculum/progress-matrix'),
   getStats: () => apiRequest('/admin/curriculum/stats'),
 };
-
-
-
-

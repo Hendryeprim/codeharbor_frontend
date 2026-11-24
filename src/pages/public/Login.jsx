@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Mail, Lock, LogIn, AlertCircle } from 'lucide-react';
@@ -9,11 +9,23 @@ export const Login = () => {
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const { login } = useAuth();
+  const { user, isAuthenticated, login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   const from = location.state?.from?.pathname || null;
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      if (user.role === 'EMPLOYEE') {
+        navigate('/employee/dashboard', { replace: true });
+      } else if (user.role === 'ADMIN') {
+        navigate('/admin/dashboard', { replace: true });
+      } else {
+        navigate('/customer/dashboard', { replace: true });
+      }
+    }
+  }, [isAuthenticated, user, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
