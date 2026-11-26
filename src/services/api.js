@@ -354,6 +354,28 @@ export const employeeCurriculumAPI = {
   getSkillTasks: (skillSlug, level) =>
     apiRequest(`/employee/curriculum/skills/${skillSlug}/tasks?level=${encodeURIComponent(level || 'BASIC')}`),
   getTaskDetails: (taskId) => apiRequest(`/employee/curriculum/tasks/${taskId}`),
+  getTaskRepoFiles: (taskId) => apiRequest(`/employee/curriculum/tasks/${taskId}/repo-files`),
+  downloadTaskZip: async (taskId, files = null, filename = 'project.zip') => {
+    const token = getAuthToken();
+    const res = await fetch(`${API_BASE_URL}/employee/curriculum/tasks/${taskId}/download-zip`, {
+      method: files ? 'POST' : 'GET',
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(files ? { 'Content-Type': 'application/json' } : {}),
+      },
+      ...(files ? { body: JSON.stringify({ files }) } : {}),
+    });
+    if (!res.ok) throw new Error('Failed to download project folder.');
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  },
   runCode: (taskId, data) =>
     apiRequest(`/employee/curriculum/tasks/${taskId}/run`, {
       method: 'POST',

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { employeeCurriculumAPI } from '../../services/api';
+import { ProjectFolderTree } from '../../components/common/ProjectFolderTree';
 import {
   Code2,
   Play,
@@ -15,6 +16,7 @@ import {
   RotateCcw,
   Sparkles,
   ExternalLink,
+  X,
 } from 'lucide-react';
 
 export const EmployeeCodingWorkspace = () => {
@@ -23,6 +25,14 @@ export const EmployeeCodingWorkspace = () => {
 
   const [task, setTask] = useState(null);
   const [code, setCode] = useState('');
+  const [repoFiles, setRepoFiles] = useState([]);
+  const [originalRepoFiles, setOriginalRepoFiles] = useState([]);
+  const [activeFile, setActiveFile] = useState('');
+  const [repoTitle, setRepoTitle] = useState('Project Folder');
+  const [loadingRepo, setLoadingRepo] = useState(false);
+  const [repoError, setRepoError] = useState('');
+  const [downloadingZip, setDownloadingZip] = useState(false);
+
   const [running, setRunning] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [executionResult, setExecutionResult] = useState(null);
@@ -32,6 +42,17 @@ export const EmployeeCodingWorkspace = () => {
   const [submitError, setSubmitError] = useState('');
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
 
+  const pickPreferredFile = (filesList) => {
+    if (!filesList || filesList.length === 0) return null;
+    const preferredNames = ['main.py', 'app.py', 'index.py', 'solution.py', 'Main.java', 'main.sql', 'query.sql'];
+    for (const pref of preferredNames) {
+      const found = filesList.find((f) => (f.path || f.filename).toLowerCase() === pref.toLowerCase());
+      if (found) return found;
+    }
+    const codeFile = filesList.find((f) => /\.(py|java|sql|js|ts|jsx|tsx|html|css)$/i.test(f.path || f.filename));
+    return codeFile || filesList[0];
+  };
+
   useEffect(() => {
     const fetchTask = async () => {
       try {
@@ -39,20 +60,69 @@ export const EmployeeCodingWorkspace = () => {
         setError('');
         const res = await employeeCurriculumAPI.getTaskDetails(taskId);
         if (res.success && res.task) {
-          setTask(res.task);
-          // If already submitted, load submitted code; otherwise initial code
-          if (res.task.mySubmission?.submittedCode) {
-            setCode(res.task.mySubmission.submittedCode);
-            if (res.task.mySubmission.executionOutput) {
-              setExecutionResult({
-                stdout: res.task.mySubmission.executionOutput,
-                stderr: '',
-                executionTimeMs: 0,
-                success: true,
-              });
+          const loadedTask = res.task;
+          setTask(loadedTask);
+
+          const defaultExt = loadedTask.skillSlug === 'sql' ? 'sql' : loadedTask.skillSlug === 'java' ? 'java' : 'py';
+          const defaultFilename = `solution.${defaultExt}`;
+
+          // 1. If employee already has saved projectFiles in submission, load them
+          if (Array.isArray(loadedTask.mySubmission?.projectFiles) && loadedTask.mySubmission.projectFiles.length > 0) {
+            const subFiles = loadedTask.mySubmission.projectFiles;
+            setRepoFiles(subFiles);
+            const first = pickPreferredFile(subFiles);
+            setActiveFile(first?.filename || first?.path || defaultFilename);
+            setCode(loadedTask.mySubmission.submittedCode || first?.content || '');
+          } else if (loadedTask.githubRepoUrl) {
+            // 2. Fetch full folder & files from GitHub repository
+            setLoadingRepo(true);
+            setRepoError('');
+            try {
+              const repoRes = await employeeCurriculumAPI.getTaskRepoFiles(taskId);
+              if (repoRes.success && Array.isArray(repoRes.files) && repoRes.files.length > 0) {
+                setRepoFiles(repoRes.files);
+                setOriginalRepoFiles(repoRes.files);
+                if (repoRes.repo?.repo) {
+                  setRepoTitle(repoRes.repo.repo);
+                }
+                const first = pickPreferredFile(repoRes.files);
+                if (first) {
+                  setActiveFile(first.path || first.filename);
+                  setCode(loadedTask.mySubmission?.submittedCode || first.content || '');
+                }
+              } else {
+                const fallback = [{ path: defaultFilename, filename: defaultFilename, content: loadedTask.initialCode || '' }];
+                setRepoFiles(fallback);
+                setOriginalRepoFiles(fallback);
+                setActiveFile(defaultFilename);
+                setCode(loadedTask.mySubmission?.submittedCode || loadedTask.initialCode || '');
+              }
+            } catch (rErr) {
+              setRepoError(rErr.message || 'Could not load repository files.');
+              const fallback = [{ path: defaultFilename, filename: defaultFilename, content: loadedTask.initialCode || '' }];
+              setRepoFiles(fallback);
+              setActiveFile(defaultFilename);
+              setCode(loadedTask.mySubmission?.submittedCode || loadedTask.initialCode || '');
+            } finally {
+              setLoadingRepo(false);
             }
           } else {
-            setCode(res.task.initialCode || '');
+            // 3. Single starter file
+            const starterCode = loadedTask.mySubmission?.submittedCode || loadedTask.initialCode || '';
+            const fallback = [{ path: defaultFilename, filename: defaultFilename, content: starterCode }];
+            setRepoFiles(fallback);
+            setOriginalRepoFiles(fallback);
+            setActiveFile(defaultFilename);
+            setCode(starterCode);
+          }
+
+          if (loadedTask.mySubmission?.executionOutput) {
+            setExecutionResult({
+              stdout: loadedTask.mySubmission.executionOutput,
+              stderr: '',
+              executionTimeMs: 0,
+              success: true,
+            });
           }
         }
       } catch (err) {
@@ -63,6 +133,38 @@ export const EmployeeCodingWorkspace = () => {
     };
     fetchTask();
   }, [taskId]);
+
+  const handleSelectFile = (filePath) => {
+    const found = repoFiles.find((f) => (f.path || f.filename) === filePath);
+    if (!found) return;
+    setActiveFile(filePath);
+    setCode(found.content ?? '');
+  };
+
+  const handleCodeChange = (newVal) => {
+    setCode(newVal);
+    setRepoFiles((prev) =>
+      prev.map((f) =>
+        (f.path || f.filename) === activeFile ? { ...f, content: newVal } : f
+      )
+    );
+  };
+
+  const handleDownloadFolderZip = async () => {
+    try {
+      setDownloadingZip(true);
+      const safeName = `${(repoTitle || task?.title || 'project').toLowerCase().replace(/[^a-z0-9]+/g, '-')}.zip`;
+      const filesPayload = repoFiles.map((f) => ({
+        filename: f.path || f.filename,
+        content: f.content ?? '',
+      }));
+      await employeeCurriculumAPI.downloadTaskZip(taskId, filesPayload, safeName);
+    } catch (err) {
+      setSubmitError(err.message || 'Failed to download folder ZIP.');
+    } finally {
+      setDownloadingZip(false);
+    }
+  };
 
   const handleRunCode = async () => {
     if (!code || !code.trim()) {
@@ -79,7 +181,18 @@ export const EmployeeCodingWorkspace = () => {
     try {
       setRunning(true);
       setExecutionResult(null);
-      const res = await employeeCurriculumAPI.runCode(taskId, { code });
+      const payload =
+        repoFiles.length > 1
+          ? {
+              code,
+              projectFiles: repoFiles.map((f) => ({
+                filename: f.path || f.filename,
+                content: f.content ?? '',
+              })),
+              entryFile: activeFile,
+            }
+          : { code };
+      const res = await employeeCurriculumAPI.runCode(taskId, payload);
       if (res.success) {
         setExecutionResult({
           stdout: res.stdout,
@@ -114,6 +227,13 @@ export const EmployeeCodingWorkspace = () => {
       setSubmitSuccess('');
       const res = await employeeCurriculumAPI.submitTask(taskId, {
         submittedCode: code,
+        projectFiles:
+          repoFiles.length > 0
+            ? repoFiles.map((f) => ({
+                filename: f.path || f.filename,
+                content: f.content ?? '',
+              }))
+            : undefined,
         executionOutput: executionResult?.stdout || '',
       });
 
@@ -131,7 +251,13 @@ export const EmployeeCodingWorkspace = () => {
   };
 
   const handleResetCode = () => {
-    setCode(task?.initialCode || '');
+    if (originalRepoFiles.length > 0) {
+      setRepoFiles(originalRepoFiles);
+      const orig = originalRepoFiles.find((f) => (f.path || f.filename) === activeFile);
+      setCode(orig ? orig.content : task?.initialCode || '');
+    } else {
+      setCode(task?.initialCode || '');
+    }
     setExecutionResult(null);
     setResetConfirmOpen(false);
   };
@@ -291,23 +417,19 @@ export const EmployeeCodingWorkspace = () => {
               </div>
             )}
 
-            {task.githubRepoUrl && (
-              <div className="border-t border-slate-800/80 pt-3 flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs text-slate-300 truncate">
-                  <FolderGit2 className="w-4 h-4 text-cyan-400 shrink-0" />
-                  <span className="truncate">{task.githubRepoUrl}</span>
-                </div>
-                <a
-                  href={task.githubRepoUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white"
-                >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
-              </div>
-            )}
           </div>
+
+          {/* Interactive Folder & File Explorer (Replaces static GitHub link) */}
+          <ProjectFolderTree
+            files={repoFiles}
+            activeFile={activeFile}
+            onSelectFile={handleSelectFile}
+            onDownloadZip={handleDownloadFolderZip}
+            downloadingZip={downloadingZip}
+            loadingRepo={loadingRepo}
+            repoError={repoError}
+            title={repoTitle}
+          />
         </div>
 
         {/* Right Column: Code Editor & Terminal */}
@@ -315,10 +437,10 @@ export const EmployeeCodingWorkspace = () => {
           {/* Editor Header */}
           <div className="p-4 rounded-3xl bg-[#0F172A] border border-[#334155]/80 space-y-3 shadow-harbor-sm flex-1 flex flex-col">
             <div className="flex items-center justify-between pb-3 border-b border-slate-800/80">
-              <div className="flex items-center gap-2">
-                <FileCode2 className="w-4 h-4 text-cyan-400" />
-                <span className="text-xs font-mono font-bold text-white">
-                  solution.{task.skillSlug === 'sql' ? 'sql' : task.skillSlug === 'java' ? 'java' : 'py'}
+              <div className="flex items-center gap-2 min-w-0">
+                <FileCode2 className="w-4 h-4 text-cyan-400 shrink-0" />
+                <span className="text-xs font-mono font-bold text-white truncate">
+                  {activeFile || `solution.${task.skillSlug === 'sql' ? 'sql' : task.skillSlug === 'java' ? 'java' : 'py'}`}
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -337,8 +459,8 @@ export const EmployeeCodingWorkspace = () => {
             <div className="relative flex-1 min-h-[340px]">
               <textarea
                 value={code}
-                onChange={(e) => setCode(e.target.value)}
-                placeholder="Write your code here..."
+                onChange={(e) => handleCodeChange(e.target.value)}
+                placeholder="Write or edit your code here..."
                 spellCheck="false"
                 className="w-full h-full min-h-[340px] p-4 rounded-2xl bg-[#070A12] border border-slate-800/80 text-emerald-400 font-mono text-xs focus:outline-none focus:border-cyan-500 leading-relaxed resize-y selection:bg-cyan-500/30"
               />
