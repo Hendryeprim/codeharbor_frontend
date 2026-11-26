@@ -247,16 +247,6 @@ export const AdminSkillCurriculum = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
-          {tasks.length > 0 && (
-            <button
-              onClick={() => setClearModalOpen(true)}
-              className="px-3.5 py-2 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 hover:bg-rose-500/20 hover:text-white font-bold text-xs flex items-center gap-1.5 transition"
-              title="Remove sample seeded tasks and start fresh"
-            >
-              <Trash2 className="w-4 h-4 text-rose-400" />
-              <span>Clear Sample Tasks</span>
-            </button>
-          )}
           <button
             onClick={() => setSkillModalOpen(true)}
             className="px-3.5 py-2 rounded-xl bg-slate-800 text-slate-200 hover:text-white font-bold text-xs flex items-center gap-1.5 transition"

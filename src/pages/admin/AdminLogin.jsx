@@ -54,10 +54,6 @@ export const AdminLogin = () => {
               <img src="/image.png" alt="CoderHarbor" className="relative h-12 w-auto mx-auto object-contain" />
             </div>
           </Link>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/30 mb-2">
-            <ShieldAlert className="w-3.5 h-3.5" />
-            <span>Staff Administration Console</span>
-          </div>
           <h2 className="text-2xl font-black text-white">Admin Authentication</h2>
           <p className="text-xs text-slate-400 mt-1">
             Restricted access portal for CoderHarbor platform operators.
