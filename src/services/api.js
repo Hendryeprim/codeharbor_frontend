@@ -381,6 +381,60 @@ export const employeeCurriculumAPI = {
       method: 'POST',
       body: JSON.stringify(data),
     }),
+  startTerminal: (taskId, data) =>
+    apiRequest(`/employee/curriculum/tasks/${taskId}/terminal/start`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  streamTerminal: async (taskId, sessionId, { onStdout, onStderr, onExit, signal }) => {
+    const token = getAuthToken();
+    const res = await fetch(`${API_BASE_URL}/employee/curriculum/tasks/${taskId}/terminal/${sessionId}/stream`, {
+      method: 'GET',
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        Accept: 'text/event-stream',
+      },
+      signal,
+    });
+    if (!res.ok || !res.body) {
+      throw new Error('Failed to connect to interactive terminal stream.');
+    }
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const chunks = buffer.split('\n\n');
+      buffer = chunks.pop() || '';
+      for (const chunk of chunks) {
+        const lines = chunk.split('\n');
+        let eventType = 'message';
+        let dataLine = '';
+        for (const line of lines) {
+          if (line.startsWith('event:')) eventType = line.slice(6).trim();
+          else if (line.startsWith('data:')) dataLine += line.slice(5).trim();
+        }
+        if (!dataLine) continue;
+        try {
+          const parsed = JSON.parse(dataLine);
+          if (eventType === 'stdout') onStdout?.(parsed.text || '');
+          else if (eventType === 'stderr') onStderr?.(parsed.text || '');
+          else if (eventType === 'exit') onExit?.(parsed);
+        } catch {}
+      }
+    }
+  },
+  sendTerminalInput: (taskId, sessionId, input) =>
+    apiRequest(`/employee/curriculum/tasks/${taskId}/terminal/${sessionId}/input`, {
+      method: 'POST',
+      body: JSON.stringify({ input }),
+    }),
+  stopTerminal: (taskId, sessionId) =>
+    apiRequest(`/employee/curriculum/tasks/${taskId}/terminal/${sessionId}/stop`, {
+      method: 'POST',
+    }),
   submitTask: (taskId, data) =>
     apiRequest(`/employee/curriculum/tasks/${taskId}/submit`, {
       method: 'POST',

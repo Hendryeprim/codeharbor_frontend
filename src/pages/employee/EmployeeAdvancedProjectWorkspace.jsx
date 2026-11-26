@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { employeeCurriculumAPI } from '../../services/api';
 import { ProjectFolderTree } from '../../components/common/ProjectFolderTree';
+import { InteractiveTerminal } from '../../components/common/InteractiveTerminal';
+import { detectLanguageInfo } from '../../utils/languageDetect';
 import {
   FolderGit2,
   Play,
@@ -37,6 +39,7 @@ export const EmployeeAdvancedProjectWorkspace = () => {
   const [activeFile, setActiveFile] = useState('main.py');
   const [githubRepoUrl, setGithubRepoUrl] = useState('');
   const [running, setRunning] = useState(false);
+  const [terminalSessionId, setTerminalSessionId] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [executionResult, setExecutionResult] = useState(null);
   const [activeTab, setActiveTab] = useState('editor'); // 'editor' | 'preview'
@@ -158,34 +161,102 @@ export const EmployeeAdvancedProjectWorkspace = () => {
     setFileToDelete(null);
   };
 
-  const handleRunProject = async () => {
+  const handleRunProject = async (targetEntryFile = activeFile || 'main.py', commandLabel = '') => {
+    const entryToRun = targetEntryFile || activeFile || 'main.py';
+    if (targetEntryFile && targetEntryFile !== activeFile && files.some((f) => f.filename === targetEntryFile)) {
+      setActiveFile(targetEntryFile);
+    }
+    const cmdDisplay = commandLabel || `${detectLanguageInfo(entryToRun, task?.skillSlug).runPrefix || 'run'} ${entryToRun}`.trim();
+
     try {
       setRunning(true);
-      setExecutionResult(null);
-      const res = await employeeCurriculumAPI.runCode(taskId, {
-        projectFiles: files,
-        entryFile: 'main.py',
-      });
-      if (res.success) {
-        setExecutionResult({
-          stdout: res.stdout,
-          stderr: res.stderr,
-          executionTimeMs: res.executionTimeMs,
-          exitCode: res.exitCode,
-          success: (res.exitCode ?? 0) === 0,
-        });
-      }
-    } catch (err) {
+      setTerminalSessionId(null);
       setExecutionResult({
         stdout: '',
-        stderr: err.message || 'Execution error occurred.',
+        stderr: '',
+        executionTimeMs: 0,
+        exitCode: 0,
+        success: true,
+        detectedLanguage: detectLanguageInfo(entryToRun, task?.skillSlug).label,
+        command: cmdDisplay,
+      });
+
+      const startRes = await employeeCurriculumAPI.startTerminal(taskId, {
+        projectFiles: files,
+        entryFile: entryToRun,
+      });
+      if (!startRes.success || !startRes.sessionId) {
+        throw new Error(startRes.message || 'Failed to start interactive terminal.');
+      }
+
+      setTerminalSessionId(startRes.sessionId);
+      setExecutionResult((prev) => ({
+        ...(prev || {}),
+        detectedLanguage: startRes.detectedLanguage || prev?.detectedLanguage,
+      }));
+
+      await employeeCurriculumAPI.streamTerminal(taskId, startRes.sessionId, {
+        onStdout: (chunk) => {
+          setExecutionResult((prev) => ({
+            ...(prev || {}),
+            stdout: (prev?.stdout || '') + chunk,
+          }));
+        },
+        onStderr: (chunk) => {
+          setExecutionResult((prev) => ({
+            ...(prev || {}),
+            stderr: (prev?.stderr || '') + chunk,
+          }));
+        },
+        onExit: (info) => {
+          setExecutionResult((prev) => ({
+            ...(prev || {}),
+            executionTimeMs: info?.executionTimeMs ?? 0,
+            exitCode: info?.exitCode ?? 0,
+            success: (info?.exitCode ?? 0) === 0,
+          }));
+          setTerminalSessionId(null);
+          setRunning(false);
+        },
+      });
+    } catch (err) {
+      setExecutionResult((prev) => ({
+        stdout: prev?.stdout || '',
+        stderr: (prev?.stderr || '') + (err.message || 'Execution error occurred.'),
         executionTimeMs: 0,
         exitCode: 1,
         success: false,
-      });
+        command: cmdDisplay,
+      }));
     } finally {
+      setTerminalSessionId(null);
       setRunning(false);
     }
+  };
+
+  const handleSendTerminalInput = async (inputStr) => {
+    if (!terminalSessionId) return;
+    setExecutionResult((prev) => ({
+      ...(prev || {}),
+      stdout: (prev?.stdout || '') + `${inputStr}\n`,
+    }));
+    try {
+      await employeeCurriculumAPI.sendTerminalInput(taskId, terminalSessionId, inputStr);
+    } catch (err) {
+      setExecutionResult((prev) => ({
+        ...(prev || {}),
+        stderr: (prev?.stderr || '') + `\n[Input Error]: ${err.message}`,
+      }));
+    }
+  };
+
+  const handleStopTerminal = async () => {
+    if (!terminalSessionId) return;
+    try {
+      await employeeCurriculumAPI.stopTerminal(taskId, terminalSessionId);
+    } catch {}
+    setTerminalSessionId(null);
+    setRunning(false);
   };
 
   const handleSubmitProject = async () => {
@@ -379,6 +450,13 @@ export const EmployeeAdvancedProjectWorkspace = () => {
               <div className="flex items-center gap-2 text-xs font-mono font-bold text-white">
                 <FileCode2 className="w-4 h-4 text-cyan-400" />
                 <span>Editing: {activeFile}</span>
+                <span
+                  className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-bold border ${
+                    detectLanguageInfo(activeFile, task?.skillSlug).badgeClass
+                  }`}
+                >
+                  {detectLanguageInfo(activeFile, task?.skillSlug).label}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-mono text-slate-500">Autosaved in workspace</span>
@@ -394,12 +472,12 @@ export const EmployeeAdvancedProjectWorkspace = () => {
 
             <div className="flex items-center justify-between pt-2">
               <button
-                onClick={handleRunProject}
+                onClick={() => handleRunProject(activeFile || 'main.py')}
                 disabled={running}
                 className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-black text-xs flex items-center gap-2 shadow-neon-glow hover:brightness-110 disabled:opacity-50"
               >
                 <Play className={`w-3.5 h-3.5 ${running ? 'animate-spin' : ''}`} />
-                <span>{running ? 'Running Project...' : 'Run Project (main.py)'}</span>
+                <span>{running ? 'Running Project...' : `Run (${activeFile || 'main.py'})`}</span>
               </button>
 
               <button
@@ -425,48 +503,28 @@ export const EmployeeAdvancedProjectWorkspace = () => {
             </div>
           </div>
 
-          {/* Terminal */}
-          <div className="rounded-3xl bg-[#070A12] border border-slate-800 overflow-hidden shadow-2xl">
-            <div className="px-4 py-2.5 bg-[#0F172A] border-b border-slate-800 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Terminal className="w-3.5 h-3.5 text-cyan-400" />
-                <span className="text-[11px] font-mono font-bold text-slate-300">
-                  Project Terminal Output
-                </span>
-              </div>
-              {executionResult && (
-                <span className="text-[10px] font-mono text-slate-400">
-                  {executionResult.executionTimeMs}ms
-                </span>
-              )}
-            </div>
-
-            <div className="p-4 min-h-[140px] max-h-[260px] overflow-y-auto font-mono text-xs">
-              {running ? (
-                <div className="flex items-center gap-2 text-cyan-400">
-                  <div className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
-                  <span>Booting isolated project runtime...</span>
-                </div>
-              ) : executionResult ? (
-                <div className="space-y-2">
-                  {executionResult.stdout && (
-                    <pre className="text-emerald-400 whitespace-pre-wrap">
-                      {executionResult.stdout}
-                    </pre>
-                  )}
-                  {executionResult.stderr && (
-                    <pre className="text-rose-400 whitespace-pre-wrap">
-                      {executionResult.stderr}
-                    </pre>
-                  )}
-                </div>
-              ) : (
-                <p className="text-slate-600 italic">
-                  Click "Run Project" to execute the full multi-file application and view console logs here.
-                </p>
-              )}
-            </div>
-          </div>
+          {/* Interactive Terminal */}
+          <InteractiveTerminal
+            files={files}
+            activeFile={activeFile}
+            skillSlug={task?.skillSlug}
+            running={running}
+            interactiveActive={Boolean(terminalSessionId)}
+            executionResult={executionResult}
+            onRunFile={(targetPath, cmd) => handleRunProject(targetPath, cmd)}
+            onSendInput={handleSendTerminalInput}
+            onStopProcess={handleStopTerminal}
+            onClearOutput={() => setExecutionResult(null)}
+            onShowInfo={(msg, isErr = false) =>
+              setExecutionResult({
+                stdout: isErr ? '' : msg,
+                stderr: isErr ? msg : '',
+                executionTimeMs: 0,
+                exitCode: isErr ? 1 : 0,
+                success: !isErr,
+              })
+            }
+          />
         </div>
       </div>
       {/* New File Modal */}

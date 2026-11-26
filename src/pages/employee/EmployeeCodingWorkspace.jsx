@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { employeeCurriculumAPI } from '../../services/api';
 import { ProjectFolderTree } from '../../components/common/ProjectFolderTree';
+import { InteractiveTerminal } from '../../components/common/InteractiveTerminal';
+import { detectLanguageInfo } from '../../utils/languageDetect';
 import {
   Code2,
   Play,
@@ -34,6 +36,7 @@ export const EmployeeCodingWorkspace = () => {
   const [downloadingZip, setDownloadingZip] = useState(false);
 
   const [running, setRunning] = useState(false);
+  const [terminalSessionId, setTerminalSessionId] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [executionResult, setExecutionResult] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -166,54 +169,131 @@ export const EmployeeCodingWorkspace = () => {
     }
   };
 
-  const handleRunCode = async () => {
-    if (!code || !code.trim()) {
+  const handleRunFileTarget = async (targetFilePath = activeFile, commandLabel = '') => {
+    const fileObj = repoFiles.find((f) => (f.path || f.filename) === targetFilePath);
+    const codeToRun = fileObj ? (fileObj.content ?? '') : code;
+    const entryName = targetFilePath || activeFile || `solution.${task?.skillSlug === 'sql' ? 'sql' : task?.skillSlug === 'java' ? 'java' : 'py'}`;
+
+    if (fileObj && targetFilePath !== activeFile) {
+      setActiveFile(targetFilePath);
+      setCode(codeToRun);
+    }
+
+    if (!codeToRun || !codeToRun.trim()) {
       setExecutionResult({
         stdout: '',
         stderr: 'Please write code in the editor before running.',
         executionTimeMs: 0,
         exitCode: 1,
         success: false,
+        command: commandLabel || entryName,
       });
       return;
     }
 
+    const cmdDisplay = commandLabel || `${detectLanguageInfo(entryName, task?.skillSlug).runPrefix || 'run'} ${entryName}`.trim();
+
     try {
       setRunning(true);
-      setExecutionResult(null);
+      setTerminalSessionId(null);
+      setExecutionResult({
+        stdout: '',
+        stderr: '',
+        executionTimeMs: 0,
+        exitCode: 0,
+        success: true,
+        detectedLanguage: detectLanguageInfo(entryName, task?.skillSlug).label,
+        command: cmdDisplay,
+      });
+
       const payload =
         repoFiles.length > 1
           ? {
-              code,
+              code: codeToRun,
               projectFiles: repoFiles.map((f) => ({
                 filename: f.path || f.filename,
                 content: f.content ?? '',
               })),
-              entryFile: activeFile,
+              entryFile: entryName,
             }
-          : { code };
-      const res = await employeeCurriculumAPI.runCode(taskId, payload);
-      if (res.success) {
-        setExecutionResult({
-          stdout: res.stdout,
-          stderr: res.stderr,
-          executionTimeMs: res.executionTimeMs,
-          exitCode: res.exitCode,
-          success: (res.exitCode ?? 0) === 0,
-        });
+          : { code: codeToRun, entryFile: entryName };
+
+      const startRes = await employeeCurriculumAPI.startTerminal(taskId, payload);
+      if (!startRes.success || !startRes.sessionId) {
+        throw new Error(startRes.message || 'Failed to start interactive terminal.');
       }
+
+      setTerminalSessionId(startRes.sessionId);
+      setExecutionResult((prev) => ({
+        ...(prev || {}),
+        detectedLanguage: startRes.detectedLanguage || prev?.detectedLanguage,
+      }));
+
+      await employeeCurriculumAPI.streamTerminal(taskId, startRes.sessionId, {
+        onStdout: (chunk) => {
+          setExecutionResult((prev) => ({
+            ...(prev || {}),
+            stdout: (prev?.stdout || '') + chunk,
+          }));
+        },
+        onStderr: (chunk) => {
+          setExecutionResult((prev) => ({
+            ...(prev || {}),
+            stderr: (prev?.stderr || '') + chunk,
+          }));
+        },
+        onExit: (info) => {
+          setExecutionResult((prev) => ({
+            ...(prev || {}),
+            executionTimeMs: info?.executionTimeMs ?? 0,
+            exitCode: info?.exitCode ?? 0,
+            success: (info?.exitCode ?? 0) === 0,
+          }));
+          setTerminalSessionId(null);
+          setRunning(false);
+        },
+      });
     } catch (err) {
-      setExecutionResult({
-        stdout: '',
-        stderr: err.message || 'Execution error occurred.',
+      setExecutionResult((prev) => ({
+        stdout: prev?.stdout || '',
+        stderr: (prev?.stderr || '') + (err.message || 'Execution error occurred.'),
         executionTimeMs: 0,
         exitCode: 1,
         success: false,
-      });
+        command: cmdDisplay,
+      }));
     } finally {
+      setTerminalSessionId(null);
       setRunning(false);
     }
   };
+
+  const handleSendTerminalInput = async (inputStr) => {
+    if (!terminalSessionId) return;
+    setExecutionResult((prev) => ({
+      ...(prev || {}),
+      stdout: (prev?.stdout || '') + `${inputStr}\n`,
+    }));
+    try {
+      await employeeCurriculumAPI.sendTerminalInput(taskId, terminalSessionId, inputStr);
+    } catch (err) {
+      setExecutionResult((prev) => ({
+        ...(prev || {}),
+        stderr: (prev?.stderr || '') + `\n[Input Error]: ${err.message}`,
+      }));
+    }
+  };
+
+  const handleStopTerminal = async () => {
+    if (!terminalSessionId) return;
+    try {
+      await employeeCurriculumAPI.stopTerminal(taskId, terminalSessionId);
+    } catch {}
+    setTerminalSessionId(null);
+    setRunning(false);
+  };
+
+  const handleRunCode = () => handleRunFileTarget(activeFile);
 
   const handleSubmitTask = async () => {
     setSubmitError('');
@@ -442,6 +522,13 @@ export const EmployeeCodingWorkspace = () => {
                 <span className="text-xs font-mono font-bold text-white truncate">
                   {activeFile || `solution.${task.skillSlug === 'sql' ? 'sql' : task.skillSlug === 'java' ? 'java' : 'py'}`}
                 </span>
+                <span
+                  className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-bold border shrink-0 ${
+                    detectLanguageInfo(activeFile, task.skillSlug).badgeClass
+                  }`}
+                >
+                  {detectLanguageInfo(activeFile, task.skillSlug).label}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <button
@@ -502,57 +589,28 @@ export const EmployeeCodingWorkspace = () => {
             </div>
           </div>
 
-          {/* Terminal / Output Panel */}
-          <div className="rounded-3xl bg-[#070A12] border border-slate-800 overflow-hidden shadow-2xl">
-            <div className="px-4 py-2.5 bg-[#0F172A] border-b border-slate-800 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Terminal className="w-3.5 h-3.5 text-cyan-400" />
-                <span className="text-[11px] font-mono font-bold text-slate-300">
-                  Terminal / Execution Output
-                </span>
-              </div>
-              {executionResult && (
-                <div className="flex items-center gap-2 text-[10px] font-mono">
-                  <span className="text-slate-400">{executionResult.executionTimeMs}ms</span>
-                  <span
-                    className={`px-1.5 py-0.5 rounded font-bold ${
-                      executionResult.success
-                        ? 'bg-emerald-500/20 text-emerald-400'
-                        : 'bg-rose-500/20 text-rose-400'
-                    }`}
-                  >
-                    exit {executionResult.exitCode ?? 0}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            <div className="p-4 min-h-[140px] max-h-[260px] overflow-y-auto font-mono text-xs">
-              {running ? (
-                <div className="flex items-center gap-2 text-cyan-400">
-                  <div className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
-                  <span>Executing program in secure container...</span>
-                </div>
-              ) : executionResult ? (
-                <div className="space-y-2">
-                  {executionResult.stdout && (
-                    <pre className="text-emerald-400 whitespace-pre-wrap">
-                      {executionResult.stdout}
-                    </pre>
-                  )}
-                  {executionResult.stderr && (
-                    <pre className="text-rose-400 whitespace-pre-wrap">
-                      {executionResult.stderr}
-                    </pre>
-                  )}
-                </div>
-              ) : (
-                <p className="text-slate-600 italic">
-                  Click "Run Code" above to execute your code and see stdout/stderr output here.
-                </p>
-              )}
-            </div>
-          </div>
+          {/* Interactive Terminal / Output Panel */}
+          <InteractiveTerminal
+            files={repoFiles}
+            activeFile={activeFile}
+            skillSlug={task.skillSlug}
+            running={running}
+            interactiveActive={Boolean(terminalSessionId)}
+            executionResult={executionResult}
+            onRunFile={(targetPath, cmd) => handleRunFileTarget(targetPath, cmd)}
+            onSendInput={handleSendTerminalInput}
+            onStopProcess={handleStopTerminal}
+            onClearOutput={() => setExecutionResult(null)}
+            onShowInfo={(msg, isErr = false) =>
+              setExecutionResult({
+                stdout: isErr ? '' : msg,
+                stderr: isErr ? msg : '',
+                executionTimeMs: 0,
+                exitCode: isErr ? 1 : 0,
+                success: !isErr,
+              })
+            }
+          />
         </div>
       </div>
       {/* Reset Confirmation Modal */}
