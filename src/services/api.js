@@ -251,6 +251,8 @@ export const adminPortalAPI = {
     apiRequest(`/admin/employees/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   toggleEmployeeStatus: (id) =>
     apiRequest(`/admin/employees/${id}/status`, { method: 'PATCH' }),
+  deleteEmployee: (id) =>
+    apiRequest(`/admin/employees/${id}`, { method: 'DELETE' }),
   getEmployeePerformance: () => apiRequest('/admin/employees/performance'),
   getEmployeeSkills: () => apiRequest('/admin/employees/skills'),
 
