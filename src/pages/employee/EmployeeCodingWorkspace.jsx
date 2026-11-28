@@ -4,6 +4,7 @@ import { employeeCurriculumAPI } from '../../services/api';
 import { ProjectFolderTree } from '../../components/common/ProjectFolderTree';
 import { InteractiveTerminal } from '../../components/common/InteractiveTerminal';
 import { detectLanguageInfo } from '../../utils/languageDetect';
+import { useInteractiveTerminal } from '../../hooks/useInteractiveTerminal';
 import {
   Code2,
   Play,
@@ -35,15 +36,43 @@ export const EmployeeCodingWorkspace = () => {
   const [repoError, setRepoError] = useState('');
   const [downloadingZip, setDownloadingZip] = useState(false);
 
-  const [running, setRunning] = useState(false);
-  const [terminalSessionId, setTerminalSessionId] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const [executionResult, setExecutionResult] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [submitSuccess, setSubmitSuccess] = useState('');
   const [submitError, setSubmitError] = useState('');
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
+
+  const {
+    running,
+    terminalSessionId,
+    executionResult,
+    setExecutionResult,
+    envStatus,
+    envLoading,
+    creatingVenv,
+    cwd,
+    refreshEnv,
+    createVenv,
+    runSession,
+    sendInput,
+    stopProcess,
+    clearOutput,
+  } = useInteractiveTerminal({
+    taskId,
+    onRequirementsUpdated: (newReqContent) => {
+      setRepoFiles((prev) => {
+        const exists = prev.some((f) => (f.path || f.filename) === 'requirements.txt');
+        if (exists) {
+          return prev.map((f) =>
+            (f.path || f.filename) === 'requirements.txt' ? { ...f, content: newReqContent } : f
+          );
+        }
+        return [...prev, { path: 'requirements.txt', filename: 'requirements.txt', content: newReqContent }];
+      });
+      if (activeFile === 'requirements.txt') setCode(newReqContent);
+    },
+  });
 
   const pickPreferredFile = (filesList) => {
     if (!filesList || filesList.length === 0) return null;
@@ -169,6 +198,13 @@ export const EmployeeCodingWorkspace = () => {
     }
   };
 
+  // Auto-inspect venv and requirements.txt once files finish loading
+  useEffect(() => {
+    if (!loading && task && repoFiles.length > 0) {
+      refreshEnv(repoFiles);
+    }
+  }, [loading, task?.id]);
+
   const handleRunFileTarget = async (targetFilePath = activeFile, commandLabel = '') => {
     const fileObj = repoFiles.find((f) => (f.path || f.filename) === targetFilePath);
     const codeToRun = fileObj ? (fileObj.content ?? '') : code;
@@ -191,107 +227,24 @@ export const EmployeeCodingWorkspace = () => {
       return;
     }
 
-    const cmdDisplay = commandLabel || `${detectLanguageInfo(entryName, task?.skillSlug).runPrefix || 'run'} ${entryName}`.trim();
-
-    try {
-      setRunning(true);
-      setTerminalSessionId(null);
-      setExecutionResult({
-        stdout: '',
-        stderr: '',
-        executionTimeMs: 0,
-        exitCode: 0,
-        success: true,
-        detectedLanguage: detectLanguageInfo(entryName, task?.skillSlug).label,
-        command: cmdDisplay,
-      });
-
-      const payload =
-        repoFiles.length > 1
-          ? {
-              code: codeToRun,
-              projectFiles: repoFiles.map((f) => ({
-                filename: f.path || f.filename,
-                content: f.content ?? '',
-              })),
-              entryFile: entryName,
-            }
-          : { code: codeToRun, entryFile: entryName };
-
-      const startRes = await employeeCurriculumAPI.startTerminal(taskId, payload);
-      if (!startRes.success || !startRes.sessionId) {
-        throw new Error(startRes.message || 'Failed to start interactive terminal.');
-      }
-
-      setTerminalSessionId(startRes.sessionId);
-      setExecutionResult((prev) => ({
-        ...(prev || {}),
-        detectedLanguage: startRes.detectedLanguage || prev?.detectedLanguage,
-      }));
-
-      await employeeCurriculumAPI.streamTerminal(taskId, startRes.sessionId, {
-        onStdout: (chunk) => {
-          setExecutionResult((prev) => ({
-            ...(prev || {}),
-            stdout: (prev?.stdout || '') + chunk,
-          }));
-        },
-        onStderr: (chunk) => {
-          setExecutionResult((prev) => ({
-            ...(prev || {}),
-            stderr: (prev?.stderr || '') + chunk,
-          }));
-        },
-        onExit: (info) => {
-          setExecutionResult((prev) => ({
-            ...(prev || {}),
-            executionTimeMs: info?.executionTimeMs ?? 0,
-            exitCode: info?.exitCode ?? 0,
-            success: (info?.exitCode ?? 0) === 0,
-          }));
-          setTerminalSessionId(null);
-          setRunning(false);
-        },
-      });
-    } catch (err) {
-      setExecutionResult((prev) => ({
-        stdout: prev?.stdout || '',
-        stderr: (prev?.stderr || '') + (err.message || 'Execution error occurred.'),
-        executionTimeMs: 0,
-        exitCode: 1,
-        success: false,
-        command: cmdDisplay,
-      }));
-    } finally {
-      setTerminalSessionId(null);
-      setRunning(false);
-    }
+    await runSession({
+      files: repoFiles,
+      code: codeToRun,
+      entryFile: entryName,
+      skillSlug: task?.skillSlug,
+      commandLabel,
+    });
   };
 
-  const handleSendTerminalInput = async (inputStr) => {
-    if (!terminalSessionId) return;
-    setExecutionResult((prev) => ({
-      ...(prev || {}),
-      stdout: (prev?.stdout || '') + `${inputStr}\n`,
-    }));
-    try {
-      await employeeCurriculumAPI.sendTerminalInput(taskId, terminalSessionId, inputStr);
-    } catch (err) {
-      setExecutionResult((prev) => ({
-        ...(prev || {}),
-        stderr: (prev?.stderr || '') + `\n[Input Error]: ${err.message}`,
-      }));
-    }
-  };
-
-  const handleStopTerminal = async () => {
-    if (!terminalSessionId) return;
-    try {
-      await employeeCurriculumAPI.stopTerminal(taskId, terminalSessionId);
-    } catch {}
-    setTerminalSessionId(null);
-    setRunning(false);
-  };
+  const handleRunCommand = (rawCommand) =>
+    runSession({
+      files: repoFiles,
+      code,
+      entryFile: activeFile || 'main.py',
+      rawCommand,
+      skillSlug: task?.skillSlug,
+      commandLabel: rawCommand,
+    });
 
   const handleRunCode = () => handleRunFileTarget(activeFile);
 
@@ -597,19 +550,17 @@ export const EmployeeCodingWorkspace = () => {
             running={running}
             interactiveActive={Boolean(terminalSessionId)}
             executionResult={executionResult}
+            envStatus={envStatus}
+            envLoading={envLoading}
+            creatingVenv={creatingVenv}
+            cwd={cwd}
             onRunFile={(targetPath, cmd) => handleRunFileTarget(targetPath, cmd)}
-            onSendInput={handleSendTerminalInput}
-            onStopProcess={handleStopTerminal}
-            onClearOutput={() => setExecutionResult(null)}
-            onShowInfo={(msg, isErr = false) =>
-              setExecutionResult({
-                stdout: isErr ? '' : msg,
-                stderr: isErr ? msg : '',
-                executionTimeMs: 0,
-                exitCode: isErr ? 1 : 0,
-                success: !isErr,
-              })
-            }
+            onRunCommand={handleRunCommand}
+            onSendInput={sendInput}
+            onStopProcess={stopProcess}
+            onClearOutput={clearOutput}
+            onRefreshEnv={() => refreshEnv(repoFiles)}
+            onCreateVenv={() => createVenv(repoFiles)}
           />
         </div>
       </div>

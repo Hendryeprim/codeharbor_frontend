@@ -4,6 +4,7 @@ import { employeeCurriculumAPI } from '../../services/api';
 import { ProjectFolderTree } from '../../components/common/ProjectFolderTree';
 import { InteractiveTerminal } from '../../components/common/InteractiveTerminal';
 import { detectLanguageInfo } from '../../utils/languageDetect';
+import { useInteractiveTerminal } from '../../hooks/useInteractiveTerminal';
 import {
   FolderGit2,
   Play,
@@ -38,11 +39,35 @@ export const EmployeeAdvancedProjectWorkspace = () => {
   ]);
   const [activeFile, setActiveFile] = useState('main.py');
   const [githubRepoUrl, setGithubRepoUrl] = useState('');
-  const [running, setRunning] = useState(false);
-  const [terminalSessionId, setTerminalSessionId] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const [executionResult, setExecutionResult] = useState(null);
   const [activeTab, setActiveTab] = useState('editor'); // 'editor' | 'preview'
+
+  const {
+    running,
+    terminalSessionId,
+    executionResult,
+    envStatus,
+    envLoading,
+    creatingVenv,
+    cwd,
+    refreshEnv,
+    createVenv,
+    runSession,
+    sendInput,
+    stopProcess,
+    clearOutput,
+  } = useInteractiveTerminal({
+    taskId,
+    onRequirementsUpdated: (newReqContent) => {
+      setFiles((prev) => {
+        const exists = prev.some((f) => f.filename === 'requirements.txt');
+        if (exists) {
+          return prev.map((f) => (f.filename === 'requirements.txt' ? { ...f, content: newReqContent } : f));
+        }
+        return [...prev, { filename: 'requirements.txt', content: newReqContent }];
+      });
+    },
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [submitSuccess, setSubmitSuccess] = useState('');
@@ -161,103 +186,33 @@ export const EmployeeAdvancedProjectWorkspace = () => {
     setFileToDelete(null);
   };
 
+  useEffect(() => {
+    if (!loading && task && files.length > 0) {
+      refreshEnv(files);
+    }
+  }, [loading, task?.id]);
+
   const handleRunProject = async (targetEntryFile = activeFile || 'main.py', commandLabel = '') => {
     const entryToRun = targetEntryFile || activeFile || 'main.py';
     if (targetEntryFile && targetEntryFile !== activeFile && files.some((f) => f.filename === targetEntryFile)) {
       setActiveFile(targetEntryFile);
     }
-    const cmdDisplay = commandLabel || `${detectLanguageInfo(entryToRun, task?.skillSlug).runPrefix || 'run'} ${entryToRun}`.trim();
-
-    try {
-      setRunning(true);
-      setTerminalSessionId(null);
-      setExecutionResult({
-        stdout: '',
-        stderr: '',
-        executionTimeMs: 0,
-        exitCode: 0,
-        success: true,
-        detectedLanguage: detectLanguageInfo(entryToRun, task?.skillSlug).label,
-        command: cmdDisplay,
-      });
-
-      const startRes = await employeeCurriculumAPI.startTerminal(taskId, {
-        projectFiles: files,
-        entryFile: entryToRun,
-      });
-      if (!startRes.success || !startRes.sessionId) {
-        throw new Error(startRes.message || 'Failed to start interactive terminal.');
-      }
-
-      setTerminalSessionId(startRes.sessionId);
-      setExecutionResult((prev) => ({
-        ...(prev || {}),
-        detectedLanguage: startRes.detectedLanguage || prev?.detectedLanguage,
-      }));
-
-      await employeeCurriculumAPI.streamTerminal(taskId, startRes.sessionId, {
-        onStdout: (chunk) => {
-          setExecutionResult((prev) => ({
-            ...(prev || {}),
-            stdout: (prev?.stdout || '') + chunk,
-          }));
-        },
-        onStderr: (chunk) => {
-          setExecutionResult((prev) => ({
-            ...(prev || {}),
-            stderr: (prev?.stderr || '') + chunk,
-          }));
-        },
-        onExit: (info) => {
-          setExecutionResult((prev) => ({
-            ...(prev || {}),
-            executionTimeMs: info?.executionTimeMs ?? 0,
-            exitCode: info?.exitCode ?? 0,
-            success: (info?.exitCode ?? 0) === 0,
-          }));
-          setTerminalSessionId(null);
-          setRunning(false);
-        },
-      });
-    } catch (err) {
-      setExecutionResult((prev) => ({
-        stdout: prev?.stdout || '',
-        stderr: (prev?.stderr || '') + (err.message || 'Execution error occurred.'),
-        executionTimeMs: 0,
-        exitCode: 1,
-        success: false,
-        command: cmdDisplay,
-      }));
-    } finally {
-      setTerminalSessionId(null);
-      setRunning(false);
-    }
+    await runSession({
+      files,
+      entryFile: entryToRun,
+      skillSlug: task?.skillSlug,
+      commandLabel,
+    });
   };
 
-  const handleSendTerminalInput = async (inputStr) => {
-    if (!terminalSessionId) return;
-    setExecutionResult((prev) => ({
-      ...(prev || {}),
-      stdout: (prev?.stdout || '') + `${inputStr}\n`,
-    }));
-    try {
-      await employeeCurriculumAPI.sendTerminalInput(taskId, terminalSessionId, inputStr);
-    } catch (err) {
-      setExecutionResult((prev) => ({
-        ...(prev || {}),
-        stderr: (prev?.stderr || '') + `\n[Input Error]: ${err.message}`,
-      }));
-    }
-  };
-
-  const handleStopTerminal = async () => {
-    if (!terminalSessionId) return;
-    try {
-      await employeeCurriculumAPI.stopTerminal(taskId, terminalSessionId);
-    } catch {}
-    setTerminalSessionId(null);
-    setRunning(false);
-  };
+  const handleRunCommand = (rawCommand) =>
+    runSession({
+      files,
+      entryFile: activeFile || 'main.py',
+      rawCommand,
+      skillSlug: task?.skillSlug,
+      commandLabel: rawCommand,
+    });
 
   const handleSubmitProject = async () => {
     try {
@@ -511,19 +466,17 @@ export const EmployeeAdvancedProjectWorkspace = () => {
             running={running}
             interactiveActive={Boolean(terminalSessionId)}
             executionResult={executionResult}
+            envStatus={envStatus}
+            envLoading={envLoading}
+            creatingVenv={creatingVenv}
+            cwd={cwd}
             onRunFile={(targetPath, cmd) => handleRunProject(targetPath, cmd)}
-            onSendInput={handleSendTerminalInput}
-            onStopProcess={handleStopTerminal}
-            onClearOutput={() => setExecutionResult(null)}
-            onShowInfo={(msg, isErr = false) =>
-              setExecutionResult({
-                stdout: isErr ? '' : msg,
-                stderr: isErr ? msg : '',
-                executionTimeMs: 0,
-                exitCode: isErr ? 1 : 0,
-                success: !isErr,
-              })
-            }
+            onRunCommand={handleRunCommand}
+            onSendInput={sendInput}
+            onStopProcess={stopProcess}
+            onClearOutput={clearOutput}
+            onRefreshEnv={() => refreshEnv(files)}
+            onCreateVenv={() => createVenv(files)}
           />
         </div>
       </div>

@@ -34,7 +34,10 @@ export const detectLanguageInfo = (filename = '', fallbackSkill = 'python') => {
 };
 
 /**
- * Resolve a terminal command like "python app.py", "node index.js", or "app.py" to a workspace file.
+ * Resolve a terminal command:
+ * - clear/cls -> clear output
+ * - filename or "python file.py" matching workspace file -> run file
+ * - pip / git / cd / pwd / python -m / shell commands -> execute in real workspace shell
  */
 export const resolveTerminalCommand = (rawInput, files = []) => {
   const trimmed = String(rawInput || '').trim();
@@ -42,7 +45,22 @@ export const resolveTerminalCommand = (rawInput, files = []) => {
 
   const lower = trimmed.toLowerCase();
   if (lower === 'clear' || lower === 'cls') return { type: 'clear' };
-  if (lower === 'ls' || lower === 'dir') return { type: 'ls' };
+
+  // Shell built-ins, pip, git, flags, or redirections go straight to real workspace shell
+  const shellPrefixes = [
+    'pip ', 'pip3 ', 'git ', 'cd ', 'cd', 'pwd', 'ls', 'dir', 'mkdir ', 'rmdir ',
+    'touch ', 'cat ', 'type ', 'echo ', 'rm ', 'del ', 'cp ', 'mv ', 'which ', 'where ',
+  ];
+  if (
+    lower === 'pip' ||
+    lower === 'pip3' ||
+    lower === 'git' ||
+    shellPrefixes.some((p) => lower === p.trim() || lower.startsWith(p)) ||
+    /[>|&]/.test(trimmed) ||
+    /\s-[a-zA-Z]/.test(trimmed)
+  ) {
+    return { type: 'shell', command: trimmed };
+  }
 
   // Strip known runner prefixes: python, python3, node, java, sql, run
   const parts = trimmed.split(/\s+/);
@@ -62,7 +80,6 @@ export const resolveTerminalCommand = (rawInput, files = []) => {
     return { type: 'run', file: exactMatch, command: trimmed };
   }
 
-  // Case-insensitive or basename match
   const baseMatch = files.find((f) => {
     const p = (f.path || f.filename || '').replace(/\\/g, '/');
     const base = p.split('/').pop();
@@ -73,5 +90,6 @@ export const resolveTerminalCommand = (rawInput, files = []) => {
     return { type: 'run', file: baseMatch, command: trimmed };
   }
 
-  return { type: 'not_found', target: normCandidate };
+  // Fallback to real workspace shell so commands like "python --version" or newly created files work
+  return { type: 'shell', command: trimmed };
 };

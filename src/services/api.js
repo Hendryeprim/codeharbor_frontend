@@ -435,6 +435,16 @@ export const employeeCurriculumAPI = {
     apiRequest(`/employee/curriculum/tasks/${taskId}/terminal/${sessionId}/stop`, {
       method: 'POST',
     }),
+  getEnvStatus: (taskId, projectFiles = []) =>
+    apiRequest(`/employee/curriculum/tasks/${taskId}/env/status`, {
+      method: 'POST',
+      body: JSON.stringify({ projectFiles }),
+    }),
+  createVenv: (taskId, venvName = 'venv', projectFiles = []) =>
+    apiRequest(`/employee/curriculum/tasks/${taskId}/env/create-venv`, {
+      method: 'POST',
+      body: JSON.stringify({ venvName, projectFiles }),
+    }),
   submitTask: (taskId, data) =>
     apiRequest(`/employee/curriculum/tasks/${taskId}/submit`, {
       method: 'POST',
