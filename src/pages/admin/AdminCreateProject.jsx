@@ -16,6 +16,118 @@ import {
   Sparkles,
 } from 'lucide-react';
 
+export const SKILL_PROJECT_PRESETS = {
+  'data-analysis': {
+    skillName: 'Data Analysis',
+    title: 'Data Analytics, Reporting & Predictive Insights System',
+    description: 'End-to-end data analytics system: extract, clean, analyze datasets, execute SQL/Pandas aggregations, and generate interactive dashboards and forecasting reports.',
+    projectType: 'Real-Time Project',
+    framework: 'Pandas / NumPy / Python',
+    database: 'PostgreSQL',
+    frontend: 'Streamlit / React Analytics Dashboard',
+    difficulty: 'Medium',
+    priority: 'High',
+    objective: 'Ingest raw datasets, handle missing values, build predictive data pipelines, and present KPIs on interactive visualizations.',
+    technicalRequirements: 'Python 3.10+, Pandas, NumPy, Scikit-Learn, PostgreSQL database connection, automated data validation routines.',
+    requirements: [
+      'Data Cleaning & Automated Preprocessing Pipeline',
+      'Exploratory Data Analysis (EDA) & Statistical Correlation',
+      'Interactive KPIs & Visual Chart Dashboards',
+      'Automated Executive Reporting (PDF / Excel Export)',
+      'SQL Aggregations & Query Performance Tuning',
+    ],
+  },
+  'sql': {
+    skillName: 'SQL',
+    title: 'Enterprise Banking & Relational Database System',
+    description: 'Design and implement an ACID-compliant enterprise database management system with complex transactions, stored procedures, indexing, and auditing.',
+    projectType: 'Real-Time Project',
+    framework: 'SQL / PL-pgSQL',
+    database: 'PostgreSQL',
+    frontend: 'Admin Database Console',
+    difficulty: 'Medium',
+    priority: 'High',
+    objective: 'Construct 3NF schemas, manage ACID transactions, write optimized window functions and analytical queries, and enforce security policies.',
+    technicalRequirements: 'PostgreSQL 14+, PL/pgSQL stored procedures, triggers, B-Tree indexes, and performance query plans.',
+    requirements: [
+      '3NF Normalized Relational Schema & Constraints',
+      'Complex Joins, Window Functions & CTE Queries',
+      'ACID Stored Procedures, Triggers & Audit Logging',
+      'Index Optimization & Query Execution Tuning',
+      'Automated Backup, Recovery & Data Integrity Verification',
+    ],
+  },
+  'java': {
+    skillName: 'Java',
+    title: 'Java Enterprise Microservices & Spring Boot System',
+    description: 'Enterprise backend system using Java 17+, Spring Boot, JPA/Hibernate, secure JWT authentication, and resilient service architecture.',
+    projectType: 'Real-Time Project',
+    framework: 'Spring Boot',
+    database: 'PostgreSQL / MySQL',
+    frontend: 'React / Angular',
+    difficulty: 'Medium',
+    priority: 'High',
+    objective: 'Develop robust, scalable Java enterprise microservices with REST endpoints, transaction management, and automated unit tests.',
+    technicalRequirements: 'Java 17+, Spring Boot 3, Spring Security, Hibernate ORM, Maven/Gradle build system.',
+    requirements: [
+      'Spring Security JWT Authentication & Role-Based Access',
+      'RESTful Endpoints with DTO Validation & Exception Handling',
+      'JPA/Hibernate Database Layer & Transaction Boundaries',
+      'Unit & Integration Testing with JUnit 5 and Mockito',
+      'Dockerized Container Build & Production Readiness',
+    ],
+  },
+  'software-testing': {
+    skillName: 'Software Testing',
+    title: 'Automated QA Test Suite & Quality Assurance Pipeline',
+    description: 'Comprehensive software testing platform covering end-to-end UI automation, REST API regression tests, performance benchmarks, and defect reports.',
+    projectType: 'Real-Time Project',
+    framework: 'Selenium / PyTest / Playwright',
+    database: 'PostgreSQL',
+    frontend: 'Allure Test Report Dashboard',
+    difficulty: 'Medium',
+    priority: 'High',
+    objective: 'Build reliable automated test suites with high test coverage, mock assertions, and continuous integration reporting.',
+    technicalRequirements: 'PyTest / Selenium / Playwright, Postman/Newman for API tests, Allure report generation.',
+    requirements: [
+      'End-to-End Automated UI Test Cases & Page Object Model',
+      'REST API Endpoint Regression & Schema Validation Suite',
+      'Data-Driven & Parameterized Test Execution',
+      'Automated Defect & Test Run HTML Reporting',
+      'Performance & Boundary Condition Stress Testing',
+    ],
+  },
+  'python': {
+    skillName: 'Python',
+    title: 'Python Enterprise Backend & REST API Platform',
+    description: 'High-performance Python backend service featuring async processing, ORM database operations, role-based authentication, and full test suite.',
+    projectType: 'Real-Time Project',
+    framework: 'Django / FastAPI',
+    database: 'PostgreSQL',
+    frontend: 'React',
+    difficulty: 'Medium',
+    priority: 'High',
+    objective: 'Build a production-ready Python backend web service with comprehensive endpoints, relational database persistence, and documentation.',
+    technicalRequirements: 'Python 3.10+, Django or FastAPI, PostgreSQL, Alembic/Django migrations, JWT authentication.',
+    requirements: [
+      'User Authentication & Secure Token Management',
+      'CRUD REST API Endpoints with Input Validation',
+      'Relational Database Modeling & ORM Migrations',
+      'Unit Tests & API Coverage with PyTest',
+      'Swagger / OpenAPI Interactive Documentation',
+    ],
+  },
+};
+
+export const getSkillPreset = (skillStr) => {
+  const s = (skillStr || '').toLowerCase();
+  if (s.includes('data') || s.includes('analyst') || s.includes('analysis')) return SKILL_PROJECT_PRESETS['data-analysis'];
+  if (s.includes('sql') || s.includes('database')) return SKILL_PROJECT_PRESETS['sql'];
+  if (s.includes('java') || s.includes('spring')) return SKILL_PROJECT_PRESETS['java'];
+  if (s.includes('test') || s.includes('qa')) return SKILL_PROJECT_PRESETS['software-testing'];
+  return SKILL_PROJECT_PRESETS['python'];
+};
+
 export const AdminCreateProject = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -84,6 +196,24 @@ export const AdminCreateProject = () => {
     'Practice Project',
   ];
 
+  const applySkillPreset = (skillName, force = true) => {
+    if (!skillName) return;
+    const preset = getSkillPreset(skillName);
+    if (!preset) return;
+
+    setTitle(preset.title);
+    setProjectType(preset.projectType);
+    setFramework(preset.framework);
+    setDatabase(preset.database);
+    setFrontend(preset.frontend);
+    setDifficulty(preset.difficulty);
+    setPriority(preset.priority);
+    setObjective(preset.objective);
+    setDescription(preset.description);
+    setTechnicalRequirements(preset.technicalRequirements);
+    setRequirements(preset.requirements.map((r) => ({ title: r })));
+  };
+
   // Load active employees list
   useEffect(() => {
     const loadEmps = async () => {
@@ -96,9 +226,13 @@ export const AdminCreateProject = () => {
           // If preselected
           if (preselectedEmpId) {
             const found = res.employees.find((e) => e.id === preselectedEmpId || e.employeeId === preselectedEmpId);
-            if (found) setSelectedEmployee(found);
+            if (found) {
+              setSelectedEmployee(found);
+              applySkillPreset(found.primarySkill, true);
+            }
           } else if (res.employees.length > 0) {
             setSelectedEmployee(res.employees[0]);
+            applySkillPreset(res.employees[0].primarySkill, true);
           }
         }
       } catch (err) {
@@ -110,11 +244,14 @@ export const AdminCreateProject = () => {
     loadEmps();
   }, [preselectedEmpId]);
 
-  // Handle employee dropdown selection - AUTO LOADS Primary Skill directly from EmployeeProfile
+  // Handle employee dropdown selection - AUTO LOADS Primary Skill & Project Presets directly from EmployeeProfile
   const handleEmployeeSelect = (e) => {
     const empId = e.target.value;
     const found = employees.find((emp) => emp.id === empId);
     setSelectedEmployee(found || null);
+    if (found) {
+      applySkillPreset(found.primarySkill, true);
+    }
   };
 
   const handleAddRequirement = (e) => {
@@ -291,10 +428,23 @@ export const AdminCreateProject = () => {
 
         {/* Step 2: Project Classification & Tech Stack */}
         <div className="p-6 rounded-3xl bg-[#0F172A] border border-[#334155] space-y-4">
-          <h2 className="text-sm font-black text-white flex items-center gap-2 border-b border-slate-800 pb-3">
-            <Layers className="w-4 h-4 text-purple-400" />
-            <span>2. Project Classification & Technology Stack</span>
-          </h2>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+            <h2 className="text-sm font-black text-white flex items-center gap-2">
+              <Layers className="w-4 h-4 text-purple-400" />
+              <span>2. Project Classification & Technology Stack</span>
+            </h2>
+            {selectedEmployee && (
+              <button
+                type="button"
+                onClick={() => applySkillPreset(selectedEmployee.primarySkill, true)}
+                className="text-[11px] font-mono font-bold px-3 py-1 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/40 transition-colors flex items-center gap-1.5 self-start sm:self-auto"
+                title="Reload recommended technical project template for this employee's skill"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-purple-400 animate-pulse" />
+                <span>Auto-Fill for {selectedEmployee.primarySkill}</span>
+              </button>
+            )}
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             <div className="sm:col-span-2">
